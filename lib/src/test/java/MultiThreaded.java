@@ -1,8 +1,11 @@
 import eu.nitonfx.signaling.api.Context;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -16,15 +19,19 @@ public class MultiThreaded {
         cx.createEffect(() -> {
             try {
                 Thread.sleep(20);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
             consumer.accept(count.get());
         });
-        ThreadGroup group = new ThreadGroup("concurrent writes");
-        for (int i = 0; i < 5; i++) {
-            int finalI = i;
-            new Thread(group, ()->count.set(finalI)).start();
-        }
-        Thread.sleep(50);
+        long start = System.currentTimeMillis();
+        IntStream.range(0, 5).mapToObj(number -> new Thread(() -> count.set(number))).peek(Thread::start).forEach(thread -> {
+            try {
+                thread.join();
+            } catch (InterruptedException ignored) {
+            }
+        });
+        long end = System.currentTimeMillis();
+        System.out.println("Time: " + (end - start)+" ms");
         verify(consumer).accept(0);
         verify(consumer).accept(0);
         verify(consumer).accept(1);
