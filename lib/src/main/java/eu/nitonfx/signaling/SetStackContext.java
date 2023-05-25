@@ -3,6 +3,7 @@ package eu.nitonfx.signaling;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.Signal;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -19,11 +20,11 @@ public class SetStackContext implements Context {
             if (!recording)
                 throw new IllegalStateException("Signal was read outside of an effect!");
             dependencies.add(subscribable);
-        }, (observers) ->{
-            if(recording)
+        }, (observers) -> {
+            if (recording)
                 deferredEffects.add(observers);
             else observers.get().forEach(Runnable::run);
-        } ,initial);
+        }, initial);
     }
 
     @Override
@@ -40,6 +41,13 @@ public class SetStackContext implements Context {
         recording = true;
         effect.run();
         recording = false;
-        return new EffectCapture(Set.copyOf(dependencies), Set.copyOf(nestedEffects), Set.copyOf(deferredEffects));
+        return new EffectCapture(copyOf(dependencies), copyOf(nestedEffects), copyOf(deferredEffects));
     }
+
+    public static<T> Set<T> copyOf(Set<T> dependencies) {
+        //Set.copyOf() not supported by teaVm
+        return Collections.unmodifiableSet(new HashSet<>(dependencies));
+    }
+
+
 }

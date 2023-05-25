@@ -6,8 +6,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static java.util.function.Predicate.not;
-
 public class Effect implements Runnable, Subscription {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
@@ -48,6 +46,11 @@ public class Effect implements Runnable, Subscription {
             deferred.addAll(innerCapture.flatDeferredEffects().toList());
         }
         allNestedEffects.forEach(Effect::run);
+    }
+
+    //Predicate.not() is not available in TeaVM
+    private<T> Predicate<T> not(Predicate<T> predicate) {
+        return o -> !predicate.test(o);
     }
 
 

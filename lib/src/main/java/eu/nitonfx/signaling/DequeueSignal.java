@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static eu.nitonfx.signaling.SetStackContext.copyOf;
+
 public class DequeueSignal<T> implements Subscribable, Signal<T> {
     private final Consumer<Subscribable> readCallback;
     private final Set<Runnable> observers = new HashSet<>();
@@ -27,7 +29,7 @@ public class DequeueSignal<T> implements Subscribable, Signal<T> {
     public void set(T i) {
         if(i == value) return;
         value = i;
-        writeCallback.accept(()->Set.copyOf(observers));
+        writeCallback.accept(()->copyOf(observers));
     }
 
     @Override
