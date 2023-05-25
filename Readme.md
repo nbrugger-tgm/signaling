@@ -103,6 +103,10 @@ You should for many **many** obvious reasons NOT do this in production - not eve
 This is an **experiment** - but it is very interesting and i learned a f * * *  ton. I hope you enjoy this. 
 I am amazed about how well and easy TeaVM (transpiles java to js) works. In the future [googles j2cl](https://github.com/google/j2cl) could be used to do what i do at production scale. There is just not enought infra jet - but in theory j2cl is production ready!
 
+Shoutout to:
+- [Tea VM](https://www.teavm.org/)
+- [SolidJS](https://www.solidjs.com/)
+
 # Features
 I have close to 100% codecoverage but not casecoverage so don't take everything for granted
 - Defered execution of nested effects for performance
@@ -110,6 +114,16 @@ I have close to 100% codecoverage but not casecoverage so don't take everything 
 - No unsubscribing needed! As soon as a signal goes out of scope all related effects are removed!
 - Noop effects are cleaned automatically - no waste.
 - Thread-safe (but blocking!)
-
+### Future maybe?
+A JSX like annotation processor?
+```java
+@JSX("""
+<button onClick={increment}>{counter}</button>        
+""")
+class CounterComponent {
+    private final Signal<Integer> counter;
+    private final Runnable increment = ()->counter.set(c->c+1);
+}
+```
 # Licence
 Do whatever the f you want with it
