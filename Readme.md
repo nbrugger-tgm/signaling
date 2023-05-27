@@ -114,15 +114,34 @@ I have close to 100% codecoverage but not casecoverage so don't take everything 
 - No unsubscribing needed! As soon as a signal goes out of scope all related effects are removed!
 - Noop effects are cleaned automatically - no waste.
 - Thread-safe (but blocking!)
-### Future maybe?
-A JSX like annotation processor?
+- ### JSX SYNTAX!
 ```java
-@JSX("""
-<button onClick={increment}>{counter}</button>        
+@JsxComponent("""
+  <div>
+      <button onClick={e -> counter.set(c->c+1)}>{counter}</button>
+        <!--Using other components already works!-->
+      <CounterDisplay counter={counter}/>
+  </div>    
 """)
-class CounterComponent {
-    private final Signal<Integer> counter;
-    private final Runnable increment = ()->counter.set(c->c+1);
+class CounterComponent implements Component{
+    public Signal<Integer> counter;
+    void initialize(){
+        counter = cx.createSignal(0);
+    }
+}
+@JsxComponent("""
+   <div>
+       <h1>This is a beautiful counter!</h1>
+       <h2>{counter}</h2>
+   <div>
+""")
+class CounterDisplay implements Component{
+    public final Signal<Integer> counter;
+    //This is a prop!
+    public CounterDisplay(Signal<Integer> counter) {
+        this.counter = counter;
+    }
+    void initialize(){}
 }
 ```
 # Licence
