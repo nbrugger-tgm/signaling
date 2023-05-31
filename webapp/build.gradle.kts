@@ -3,6 +3,7 @@ import org.teavm.gradle.api.OptimizationLevel
 plugins {
     id("java")
     id("org.teavm").version("0.8.1")
+    id("eu.niton.bytecoder")
 }
 
 group = "com.niton"
@@ -14,12 +15,12 @@ repositories {
 }
 
 dependencies {
-    teavm(project(":jsx:processor"))//temporary
     implementation("com.niton.jainparse:core:3.0.0b1")//temp
 
+    compileOnly(project(":jsx:processor"))//temporary
     annotationProcessor(project(":jsx:processor"))
-    compileOnly(project(":jsx:api"))
-    teavm(project(":jsx:runtime"))
+    implementation(project(":jsx:api"))
+    implementation(project(":jsx:runtime"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -38,6 +39,11 @@ teavm.js {
     // this is also optional, default value is <project name>.js
     targetFileName.set("example.js")
 }
+
+bytecoder {
+    mainClass.set("example.MainClass")
+}
+
 tasks.register("package"){
     dependsOn("generateJavaScript");
     dependsOn("processResources");

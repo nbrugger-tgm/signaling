@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    id("java-library")
 }
 
 group = "com.niton"
@@ -10,5 +10,5 @@ repositories {
 }
 
 dependencies {
-    compileOnly(project(":lib"))
+    api(project(":lib"))
 }

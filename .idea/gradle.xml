@@ -1,4 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/bytecoder-gradle" name="bytecoder-gradle">
+                <projects>
+                  <project path="$PROJECT_DIR$/bytecoder-gradle" />
+                  <project path="$PROJECT_DIR$/bytecoder-gradle/plugin" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/jsx/parser" name="jainparse">
+                <projects>
+                  <project path="$PROJECT_DIR$/jsx/parser" />
+                  <project path="$PROJECT_DIR$/jsx/parser/core" />
+                  <project path="$PROJECT_DIR$/jsx/parser/generator" />
+                  <project path="$PROJECT_DIR$/jsx/parser/grammar-parser" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="17 (intellij)" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/bytecoder-gradle" />
+            <option value="$PROJECT_DIR$/bytecoder-gradle/plugin" />
+            <option value="$PROJECT_DIR$/jsx" />
+            <option value="$PROJECT_DIR$/jsx/api" />
+            <option value="$PROJECT_DIR$/jsx/parser" />
+            <option value="$PROJECT_DIR$/jsx/parser/core" />
+            <option value="$PROJECT_DIR$/jsx/parser/generator" />
+            <option value="$PROJECT_DIR$/jsx/parser/grammar-parser" />
+            <option value="$PROJECT_DIR$/jsx/processor" />
+            <option value="$PROJECT_DIR$/jsx/runtime" />
+            <option value="$PROJECT_DIR$/lib" />
+            <option value="$PROJECT_DIR$/webapp" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
 </project>
