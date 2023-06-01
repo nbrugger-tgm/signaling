@@ -1,13 +1,12 @@
 package eu.niton
 
-import de.mirkosertic.bytecoder.api.Logger
 //import de.mirkosertic.bytecoder.cli.BytecoderCLI
+import de.mirkosertic.bytecoder.api.Logger
 import de.mirkosertic.bytecoder.core.Slf4JLogger
 import de.mirkosertic.bytecoder.core.backend.CompileOptions
 import de.mirkosertic.bytecoder.core.backend.js.JSBackend
 import de.mirkosertic.bytecoder.core.backend.js.JSIntrinsics
 import de.mirkosertic.bytecoder.core.ir.AnalysisException
-import de.mirkosertic.bytecoder.core.ir.AnalysisStack
 import de.mirkosertic.bytecoder.core.loader.BytecoderLoader
 import de.mirkosertic.bytecoder.core.optimizer.Optimizations
 import de.mirkosertic.bytecoder.core.parser.CompileUnit
@@ -23,7 +22,6 @@ import org.objectweb.asm.Type
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URLClassLoader
-import java.nio.file.Files
 
 
 /**
@@ -46,7 +44,16 @@ class BytecoderGradlePlugin : Plugin<Project> {
             task.doFirst {
                 println(classpath?.joinToString(";"))
                 project.mkdir(unifiedClasspath)
-                runTranspileCommand(extension.mainClass.get(), extension.outputDir.get().toString(), classpath?.joinToString (";" ))
+                try {
+                    runTranspileCommand(
+                        extension.mainClass.get(),
+                        extension.outputDir.get().toString(),
+                        classpath?.joinToString(";")
+                    )
+                } catch (ex: AnalysisException){
+                    ex.analysisStack.dumpAnalysisStack(System.err);
+                    throw ex;
+                }
             };
         }
         project.tasks.named("build") {
@@ -63,34 +70,31 @@ class BytecoderGradlePlugin : Plugin<Project> {
 }
 
 fun runTranspileCommand(mainClass: String, buildDirectory: String, classpath: String?) {
-    try {
-        val rootClassLoader = JSBackend::class.java.classLoader
-        val classLoader = URLClassLoader(classpath?.split(";")?.map { classpathItem ->
-            File(classpathItem).toURI().toURL()
-        }?.toTypedArray(), rootClassLoader)
-        val loader: Loader = BytecoderLoader(classLoader)
-        val logger: Logger = Slf4JLogger()
-        logger.info("Compiling main class {} to directory {}", mainClass, buildDirectory)
-        val compileUnit = CompileUnit(loader, logger, JSIntrinsics())
-        val invokedType = Type.getObjectType(mainClass.replace('.', '/'))
-        compileUnit.resolveMainMethod(
-            invokedType,
-            "main",
-            Type.getMethodType(Type.VOID_TYPE, Type.getType("[Ljava/lang/String;"))
-        )
-        compileUnit.finalizeLinkingHierarchy()
-        compileUnit.logStatistics()
-        val compileOptions =
-            CompileOptions(logger, Optimizations.DEFAULT, arrayOf(), "bytecoder", false)
-        val backend = JSBackend()
-        val result = backend.generateCodeFor(compileUnit, compileOptions)
-        for (content in result.content) {
-            val outputFile = File(buildDirectory, content.fileName)
-            FileOutputStream(outputFile).use { theFos -> content.writeTo(theFos) }
-        }
-    } catch (e: AnalysisException) {
-        e.analysisStack.dumpAnalysisStack(System.out)
-        throw e
+    val rootClassLoader = JSBackend::class.java.classLoader
+    val classLoader = URLClassLoader(classpath?.split(";")?.map { classpathItem ->
+        File(classpathItem).toURI().toURL()
+    }?.toTypedArray(), rootClassLoader)
+    val loader: Loader = BytecoderLoader(classLoader)
+    val logger: Logger = Slf4JLogger()
+    logger.info("Compiling main class {} to directory {}", mainClass, buildDirectory)
+    val compileUnit = CompileUnit(loader, logger, JSIntrinsics())
+    val invokedType = Type.getObjectType(mainClass.replace('.', '/'))
+    compileUnit.resolveMainMethod(
+        invokedType,
+        "main",
+        Type.getMethodType(Type.VOID_TYPE, Type.getType("[Ljava/lang/String;"))
+    )
+    compileUnit.finalizeLinkingHierarchy()
+    compileUnit.logStatistics()
+    val compileOptions =
+        CompileOptions(logger, Optimizations.DEFAULT, arrayOf(), "bytecoder", false)
+    val backend = JSBackend()
+    val result = backend.generateCodeFor(compileUnit, compileOptions)
+    for (content in result.content) {
+        val outputFile = File(buildDirectory, content.fileName)
+        if(!outputFile.parentFile.exists()) outputFile.parentFile.mkdirs();
+        if(!outputFile.exists()) outputFile.createNewFile();
+        FileOutputStream(outputFile).use { theFos -> content.writeTo(theFos) }
     }
 }
 
