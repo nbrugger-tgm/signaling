@@ -20,7 +20,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     api("de.mirkosertic.bytecoder:bytecoder-core:2023-05-19")
     implementation("com.squareup:javapoet:1.+")
-    implementation("de.mirkosertic.bytecoder:bytecoder-cli:2023-05-19")
+    implementation("de.mirkosertic.bytecoder:java.base:2023-05-19")
 }
 
 gradlePlugin {

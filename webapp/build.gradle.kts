@@ -17,7 +17,7 @@ repositories {
 dependencies {
     implementation("com.niton.jainparse:core:3.0.0b1")//temp
 
-    compileOnly(project(":jsx:processor"))//temporary
+    implementation(project(":jsx:processor"))//this contains the parser which is needed for parsing in the frontend see JsxParserComponent
     annotationProcessor(project(":jsx:processor"))
     implementation(project(":jsx:api"))
     implementation(project(":jsx:runtime"))

@@ -9,22 +9,4 @@
 
 rootProject.name = "bytecoder-gradle"
 include("plugin")
-pluginManagement {
-    repositories {
-        mavenCentral()
-    }
-    buildscript{
-        dependencies{
-            classpath("de.mirkosertic.bytecoder:bytecoder-cli:2023-05-19")
-        }
-    }
-}
-
-buildscript{
-    repositories {
-        mavenCentral()
-    }
-    dependencies{
-        classpath("de.mirkosertic.bytecoder:bytecoder-cli:2023-05-19")
-    }
-}
+includeBuild("../bytecoder")

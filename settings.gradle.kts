@@ -1,5 +1,6 @@
 rootProject.name = "signaling"
 includeBuild("bytecoder-gradle")
+includeBuild("bytecoder")
 includeBuild("jsx/parser") {
     dependencySubstitution {
         substitute(module("com.niton.jainparse:core")).using(project(":core"))
