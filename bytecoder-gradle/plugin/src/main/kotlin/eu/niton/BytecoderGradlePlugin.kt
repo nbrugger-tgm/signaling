@@ -1,7 +1,7 @@
 package eu.niton
 
 import de.mirkosertic.bytecoder.api.Logger
-import de.mirkosertic.bytecoder.cli.BytecoderCLI
+//import de.mirkosertic.bytecoder.cli.BytecoderCLI
 import de.mirkosertic.bytecoder.core.Slf4JLogger
 import de.mirkosertic.bytecoder.core.backend.CompileOptions
 import de.mirkosertic.bytecoder.core.backend.js.JSBackend
@@ -62,14 +62,9 @@ class BytecoderGradlePlugin : Plugin<Project> {
 
 }
 
-fun flatMapClasspath(item: File): Sequence<File> {
-    return if (item.isFile) arrayOf(item).asSequence() else item.listFiles()?.asSequence()
-        ?: listOf<File>().asSequence();
-}
-
 fun runTranspileCommand(mainClass: String, buildDirectory: String, classpath: String?) {
     try {
-        val rootClassLoader = BytecoderCLI::class.java.classLoader
+        val rootClassLoader = JSBackend::class.java.classLoader
         val classLoader = URLClassLoader(classpath?.split(";")?.map { classpathItem ->
             File(classpathItem).toURI().toURL()
         }?.toTypedArray(), rootClassLoader)
@@ -90,7 +85,7 @@ fun runTranspileCommand(mainClass: String, buildDirectory: String, classpath: St
         val backend = JSBackend()
         val result = backend.generateCodeFor(compileUnit, compileOptions)
         for (content in result.content) {
-            val outputFile: File = File(buildDirectory, content.fileName)
+            val outputFile = File(buildDirectory, content.fileName)
             FileOutputStream(outputFile).use { theFos -> content.writeTo(theFos) }
         }
     } catch (e: AnalysisException) {
