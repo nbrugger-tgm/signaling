@@ -7,29 +7,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d94c9cc2-8354-486d-a32d-96a137b8a3fd" name="Changes" comment="feat: add webapp">
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/Component.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/JsxComponent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/Prop.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/AnyTokenGrammar.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxParser.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxProcessor.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/MatchingBracketGrammar.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/CounterExample.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/src/main/java/example/App.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/src/main/java/example/JsxParserComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/checkstyle-idea.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/JSX.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/JSX.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/MainClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/MainClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/resources/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/resources/index.html" afterDir="false" />
+    <list default="true" id="d94c9cc2-8354-486d-a32d-96a137b8a3fd" name="Changes" comment="feat(core): improved `No such method` traces&#10;&#10;ref: #924">
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bytecoder/classlib/java.base/src/main/java/de/mirkosertic/bytecoder/classlib/java/util/regex/TMatcher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/webapp/bytecoder.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder-gradle/plugin/src/main/kotlin/eu/niton/BytecoderGradlePlugin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder-gradle/plugin/src/main/kotlin/eu/niton/BytecoderGradlePlugin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/buildSrc/src/main/kotlin/de.mirkosertic.bytecoder.java-conventions.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/buildSrc/src/main/kotlin/de.mirkosertic.bytecoder.java-conventions.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/classlib/java.base/src/main/java/de/mirkosertic/bytecoder/classlib/java/lang/TString.java" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/classlib/java.base/src/main/java/de/mirkosertic/bytecoder/classlib/java/lang/TString.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/classlib/java.base/src/main/java/de/mirkosertic/bytecoder/classlib/java/util/regex/TPattern.java" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/classlib/java.base/src/main/java/de/mirkosertic/bytecoder/classlib/java/util/regex/TPattern.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/test/UnitTestRunner.java" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/test/UnitTestRunner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/core/src/main/resources/runtime.js" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/core/src/main/resources/runtime.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/core/src/main/resources/wasmruntime.js" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/core/src/main/resources/wasmruntime.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bytecoder/core/src/test/java/de/mirkosertic/bytecoder/classlib/java/lang/StringTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/bytecoder/core/src/test/java/de/mirkosertic/bytecoder/classlib/java/lang/StringTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +31,9 @@
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/bytecoder-gradle">
       <ProjectState />
     </projectState>
   </component>
@@ -56,28 +52,15 @@
         <task path="$PROJECT_DIR$/jsx">
           <activation />
         </task>
+        <task path="$PROJECT_DIR$/bytecoder-gradle">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="signaling" type="f1a62948:ProjectNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="signaling" type="f1a62948:ProjectNode" />
-                <item name="signaling" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="signaling" type="f1a62948:ProjectNode" />
-                <item name="jainparse" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="signaling" type="f1a62948:ProjectNode" />
-                <item name="jainparse" type="2d1252cf:ModuleNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
               </path>
             </expand>
             <select />
@@ -94,25 +77,25 @@
         <option value="Rust File" />
         <option value="Interface" />
         <option value="AnnotationType" />
+        <option value="Kotlin Script" />
+        <option value="HTML File" />
         <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/bytecoder" value="gradle" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/bytecoder" />
     <option name="RESET_MODE" value="SOFT" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitRewordedCommitMessages">
-    <option name="commitMessagesMapping">
-      <RewordedCommitMessageMapping>
-        <option name="originalMessage" value="feat: separate API from implementation" />
-        <option name="rewordedMessage" value="feat: initial implementation" />
-      </RewordedCommitMessageMapping>
-    </option>
-    <option name="currentCommit" value="1" />
-    <option name="onto" value="dedf96d033b9640fcd5804bdcf8f7debec4d5e98" />
+    <option name="onto" value="34bcadcd63e34427b0d44f554005655512f554de" />
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="true" />
@@ -137,6 +120,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
     "Downloaded.Files.Path.Enabled": "false",
     "Repository.Attach.Annotations": "false",
     "Repository.Attach.JavaDocs": "false",
@@ -145,28 +129,32 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.go.formatter.settings.were.checked": "true",
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ShowUsagesActions.previewPropertyKey": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "gradle-java-classlib",
     "go.import.settings.migrated": "true",
     "jdk.selected.JAVA_MODULE": "17 (installed)",
     "last_directory_selection": "/home/nils/workspace/priv/signaling/jsx/processor/src/main/java",
-    "last_opened_file_path": "/home/nils/workspace/priv/signaling/jsx/parser",
+    "last_opened_file_path": "/home/nils/workspace/priv/signaling/lib",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Artifacts",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
+    "settings.editor.selected.configurable": "reference.idesettings.quicklists",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/webapp" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/webapp/src/main/resources" />
       <recent name="$PROJECT_DIR$/webapp/src/main/webapp" />
@@ -192,7 +180,7 @@
       <command value="gradle clean package -t" />
     </option>
   </component>
-  <component name="RunManager" selected="Gradle.signaling [clean package]">
+  <component name="RunManager" selected="Gradle.StringTest.testStreamCodePoints">
     <configuration default="true" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -210,7 +198,7 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="RepeatMatcherTest.testWorking" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="EnumTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -221,20 +209,20 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":parser:core:test" />
+            <option value=":bytecoder:bytecoder-core:test" />
             <option value="--tests" />
-            <option value="&quot;com.niton.parser.grammar.matchers.RepeatMatcherTest.testWorking&quot;" />
+            <option value="&quot;de.mirkosertic.bytecoder.core.EnumTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
+      <DebugAllEnabled>true</DebugAllEnabled>
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="Tests in 'jainparse.core'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="StringTest.charAt" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -245,7 +233,9 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":parser:core:test" />
+            <option value=":bytecoder:bytecoder-core:test" />
+            <option value="--tests" />
+            <option value="&quot;de.mirkosertic.bytecoder.classlib.java.lang.StringTest.charAt&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -256,29 +246,7 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="signaling [:parser:core:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":parser:core:build" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>false</ForceTestExec>
-      <method v="2" />
-    </configuration>
-    <configuration name="signaling [clean package]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="StringTest.testCharAt" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -289,16 +257,65 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value="clean" />
-            <option value="package" />
+            <option value=":bytecoder:bytecoder-core:test" />
+            <option value="--tests" />
+            <option value="&quot;de.mirkosertic.bytecoder.classlib.java.lang.StringTest.testCharAt&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>false</ForceTestExec>
+      <ForceTestExec>true</ForceTestExec>
+      <method v="2" />
+    </configuration>
+    <configuration name="StringTest.testStreamChars" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":bytecoder:bytecoder-core:test" />
+            <option value="--tests" />
+            <option value="&quot;de.mirkosertic.bytecoder.classlib.java.lang.StringTest.testStreamChars&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <ForceTestExec>true</ForceTestExec>
+      <method v="2" />
+    </configuration>
+    <configuration name="StringTest.testStreamCodePoints" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":bytecoder:bytecoder-core:test" />
+            <option value="--tests" />
+            <option value="&quot;de.mirkosertic.bytecoder.classlib.java.lang.StringTest.testStreamCodePoints&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
     <configuration name="signaling [test]" type="GradleRunConfiguration" factoryName="Gradle">
@@ -323,43 +340,21 @@
       <ForceTestExec>false</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="signaling:webapp [package]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$/webapp" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="package" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>false</ForceTestExec>
-      <method v="2" />
-    </configuration>
     <list>
       <item itemvalue="Gradle.signaling [test]" />
-      <item itemvalue="Gradle.RepeatMatcherTest.testWorking" />
-      <item itemvalue="Gradle.Tests in 'jainparse.core'" />
-      <item itemvalue="Gradle.signaling [:parser:core:build]" />
-      <item itemvalue="Gradle.signaling [clean package]" />
-      <item itemvalue="Gradle.signaling:webapp [package]" />
+      <item itemvalue="Gradle.StringTest.charAt" />
+      <item itemvalue="Gradle.StringTest.testCharAt" />
+      <item itemvalue="Gradle.StringTest.testStreamChars" />
+      <item itemvalue="Gradle.StringTest.testStreamCodePoints" />
+      <item itemvalue="Gradle.EnumTest" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.signaling [clean package]" />
-        <item itemvalue="Gradle.RepeatMatcherTest.testWorking" />
-        <item itemvalue="Gradle.Tests in 'jainparse.core'" />
-        <item itemvalue="Gradle.signaling [:parser:core:build]" />
-        <item itemvalue="Gradle.signaling:webapp [package]" />
+        <item itemvalue="Gradle.StringTest.testStreamCodePoints" />
+        <item itemvalue="Gradle.StringTest.testStreamChars" />
+        <item itemvalue="Gradle.StringTest.testCharAt" />
+        <item itemvalue="Gradle.StringTest.charAt" />
+        <item itemvalue="Gradle.EnumTest" />
       </list>
     </recent_temporary>
   </component>
@@ -370,6 +365,7 @@
   <component name="StandaloneScriptsStorage">
     <option name="files">
       <set>
+        <option value="$PROJECT_DIR$/bytecoder-gradle/build.gradle.kts" />
         <option value="$PROJECT_DIR$/settings.gradle.kts" />
       </set>
     </option>
@@ -389,6 +385,14 @@
       <workItem from="1685087781296" duration="886000" />
       <workItem from="1685088966586" duration="43761000" />
       <workItem from="1685154966568" duration="6955000" />
+      <workItem from="1685163992518" duration="518000" />
+      <workItem from="1685433014525" duration="522000" />
+      <workItem from="1685550557237" duration="16286000" />
+      <workItem from="1685603909779" duration="2029000" />
+      <workItem from="1685609330423" duration="6421000" />
+      <workItem from="1685623747916" duration="30727000" />
+      <workItem from="1685693498232" duration="10701000" />
+      <workItem from="1685707678380" duration="5961000" />
     </task>
     <task id="LOCAL-00001" summary="initial">
       <created>1684522953347</created>
@@ -446,11 +450,140 @@
       <option name="project" value="LOCAL" />
       <updated>1685049566283</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="feat: add JSX support">
+      <created>1685164045064</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1685164045064</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat: add JSX support">
+      <created>1685164473657</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1685164473657</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat: (beta) basic bytecoder gradle plugin">
+      <created>1685566846600</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1685566846600</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat: gradle build">
+      <created>1685624444470</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1685624444470</updated>
+    </task>
+    <task id="LOCAL-00013" summary="feat(core): improved `No such method` traces&#10;&#10;ref: #924">
+      <created>1685633707045</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1685633707045</updated>
+    </task>
+    <task id="LOCAL-00014" summary="feat(core): String.replace() &amp; string.indexOf(String) support&#10;&#10;This is not tested yet!&#10;&#10;ref: #921">
+      <created>1685633968221</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1685633968221</updated>
+    </task>
+    <task id="LOCAL-00015" summary="WUP: feat(core): `Pattern` &amp; `Matcher` support&#10;&#10;This is not tested yet!&#10;&#10;ref: #922">
+      <created>1685634043341</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1685634043341</updated>
+    </task>
+    <task id="LOCAL-00016" summary="clean">
+      <created>1685634074298</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1685634074298</updated>
+    </task>
+    <task id="LOCAL-00017" summary="fix(core): System.arraycopy with objects (not arrays)">
+      <created>1685648647419</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1685648647419</updated>
+    </task>
+    <task id="LOCAL-00018" summary="fix(core): Method references with unmatching return type&#10;&#10;ref: #926">
+      <created>1685648798710</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1685648798710</updated>
+    </task>
+    <task id="LOCAL-00019" summary="fix(core): Jump labels contain invalid -&#10;&#10;ref: #927">
+      <created>1685648855971</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1685648855971</updated>
+    </task>
+    <task id="LOCAL-00020" summary="WIP2">
+      <created>1685649149209</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1685649149209</updated>
+    </task>
+    <task id="LOCAL-00021" summary="fixie wixie pluginsky">
+      <created>1685649169134</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1685649169134</updated>
+    </task>
+    <task id="LOCAL-00022" summary="test: System.arraycopy">
+      <created>1685699128302</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1685699128302</updated>
+    </task>
+    <task id="LOCAL-00023" summary="enum scharmützel">
+      <created>1685709894549</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1685709894549</updated>
+    </task>
+    <task id="LOCAL-00024" summary="test: non-matching return type method reference">
+      <created>1685710523833</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1685710523833</updated>
+    </task>
+    <task id="LOCAL-00025" summary="feat(core): improved `No such method` traces&#10;&#10;ref: #924">
+      <created>1685710902750</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1685710902750</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -469,7 +602,22 @@
     <MESSAGE value="initial" />
     <MESSAGE value="feat: deferred nested &amp; recursive effects&#10;&#10;effects that trigger other effects are now deferred to the end of the triggering effect.&#10;```java&#10;effect(()=&gt;{&#10;  signalA.set(...)&#10;  doX();&#10;});&#10;effect(()=&gt;signalB.set(signalA.get()); //effect2&#10;```&#10;now doX() is executed **before** effect2!&#10;&#10;This helps to maintain expected execution in recursive cases.&#10;&#10;Example:&#10;```java&#10;cx.createEffect(() -&gt; {&#10;  if(count.get() &lt; 5){&#10;    count.update(e -&gt; e + 1);&#10;  }&#10;  System.out.println(count.get());&#10;});&#10;```&#10;Output before: `5 5 5 5 5 5`&#10;Output now   : `1 2 3 4 5 5`&#10;which is more expectable in more complex cases" />
     <MESSAGE value="feat: add webapp" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: add webapp" />
+    <MESSAGE value="feat: add JSX support" />
+    <MESSAGE value="feat: (beta) basic bytecoder gradle plugin" />
+    <MESSAGE value="feat: gradle build" />
+    <MESSAGE value="feat(core): String.replace() &amp; string.indexOf(String) support&#10;&#10;This is not tested yet!&#10;&#10;ref: #921" />
+    <MESSAGE value="WUP: feat(core): `Pattern` &amp; `Matcher` support&#10;&#10;This is not tested yet!&#10;&#10;ref: #922" />
+    <MESSAGE value="clean" />
+    <MESSAGE value="fix(core): System.arraycopy with objects (not arrays)&#10;&#10;ref: #928" />
+    <MESSAGE value="fix(core): Method references with unmatching return type&#10;&#10;ref: #926" />
+    <MESSAGE value="fix(core): Jump labels contain invalid -&#10;&#10;ref: #927" />
+    <MESSAGE value="WIP2" />
+    <MESSAGE value="fixie wixie pluginsky" />
+    <MESSAGE value="test: System.arraycopy" />
+    <MESSAGE value="enum scharmützel" />
+    <MESSAGE value="test: non-matching return type method reference" />
+    <MESSAGE value="feat(core): improved `No such method` traces&#10;&#10;ref: #924" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(core): improved `No such method` traces&#10;&#10;ref: #924" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -530,12 +678,6 @@
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <condition expression="matcher == null" language="JAVA" />
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/main/java/com/niton/parser/grammar/api/Grammar.java</url>
-          <line>138</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <condition expression="children.stream().anyMatch(e -&gt; e == null)" language="JAVA" />
           <url>file://$PROJECT_DIR$/jsx/parser/core/src/main/java/com/niton/parser/ast/ReducedNode.java</url>
           <line>34</line>
@@ -565,6 +707,61 @@
           <url>file://$PROJECT_DIR$/jsx/parser/core/src/test/java/com/niton/parser/grammar/matchers/RepeatMatcherTest.java</url>
           <line>35</line>
           <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <condition expression="argType.type.getClassName().contains(&quot;Enum&quot;) &amp;&amp; x.getName().contains(&quot;getDeclaringClass&quot;)" language="JAVA" />
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/parser/GraphParser.java</url>
+          <line>2423</line>
+          <option name="timeStamp" value="30" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/parser/JavaLangSystemIntrinsics.java</url>
+          <line>79</line>
+          <option name="timeStamp" value="33" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/backend/js/JSStructuredControlflowCodeGenerator.java</url>
+          <line>688</line>
+          <option name="timeStamp" value="34" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/backend/js/JSStructuredControlflowCodeGenerator.java</url>
+          <line>784</line>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/parser/CompileUnit.java</url>
+          <line>124</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/parser/CompileUnit.java</url>
+          <line>122</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/parser/CompileUnit.java</url>
+          <line>110</line>
+          <option name="timeStamp" value="39" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <condition expression="className.equals(&quot;de$mirkosertic$bytecoder$core$EnumTest$SubclassedEnum$1&quot;)" language="JAVA" />
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/backend/js/JSBackend.java</url>
+          <line>108</line>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/backend/js/JSBackend.java</url>
+          <line>107</line>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bytecoder/core/src/main/java/de/mirkosertic/bytecoder/core/test/UnitTestRunner.java</url>
+          <line>300</line>
+          <option name="timeStamp" value="43" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

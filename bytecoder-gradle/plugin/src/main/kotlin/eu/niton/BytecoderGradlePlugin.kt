@@ -17,6 +17,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.jvm.tasks.Jar
 import org.objectweb.asm.Type
 import java.io.File
@@ -52,7 +53,7 @@ class BytecoderGradlePlugin : Plugin<Project> {
                     )
                 } catch (ex: AnalysisException){
                     ex.analysisStack.dumpAnalysisStack(System.err);
-                    throw ex;
+                    throw TaskExecutionException(task,ex);
                 }
             };
         }

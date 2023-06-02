@@ -7,6 +7,31 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
+              <build path="$PROJECT_DIR$/bytecoder" name="bytecoder-parent">
+                <projects>
+                  <project path="$PROJECT_DIR$/bytecoder" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/bytecoder.api" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/bytecoder.opencl" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/bytecoder.vue" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/bytecoder.web" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/java.base" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/java.datatransfer" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/java.desktop" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/java.logging" />
+                  <project path="$PROJECT_DIR$/bytecoder/classlib/java.xml" />
+                  <project path="$PROJECT_DIR$/bytecoder/cli" />
+                  <project path="$PROJECT_DIR$/bytecoder/core" />
+                  <project path="$PROJECT_DIR$/bytecoder/integrationtest" />
+                  <project path="$PROJECT_DIR$/bytecoder/languagefeatures" />
+                  <project path="$PROJECT_DIR$/bytecoder/maven" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/bytecoder/buildSrc" name="buildSrc">
+                <projects>
+                  <project path="$PROJECT_DIR$/bytecoder/buildSrc" />
+                </projects>
+              </build>
               <build path="$PROJECT_DIR$/bytecoder-gradle" name="bytecoder-gradle">
                 <projects>
                   <project path="$PROJECT_DIR$/bytecoder-gradle" />
@@ -29,8 +54,25 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/bytecoder" />
             <option value="$PROJECT_DIR$/bytecoder-gradle" />
             <option value="$PROJECT_DIR$/bytecoder-gradle/plugin" />
+            <option value="$PROJECT_DIR$/bytecoder/buildSrc" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/bytecoder.api" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/bytecoder.opencl" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/bytecoder.vue" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/bytecoder.web" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/java.base" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/java.datatransfer" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/java.desktop" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/java.logging" />
+            <option value="$PROJECT_DIR$/bytecoder/classlib/java.xml" />
+            <option value="$PROJECT_DIR$/bytecoder/cli" />
+            <option value="$PROJECT_DIR$/bytecoder/core" />
+            <option value="$PROJECT_DIR$/bytecoder/integrationtest" />
+            <option value="$PROJECT_DIR$/bytecoder/languagefeatures" />
+            <option value="$PROJECT_DIR$/bytecoder/maven" />
             <option value="$PROJECT_DIR$/jsx" />
             <option value="$PROJECT_DIR$/jsx/api" />
             <option value="$PROJECT_DIR$/jsx/parser" />
