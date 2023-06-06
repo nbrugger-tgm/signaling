@@ -10,8 +10,9 @@ import eu.nitonfx.signaling.api.Signal;
         <span>You clicked {count} times!</span>
         <button onClick={e -> count.update(c -> c + 1)}>Click me</button>
         <JsxParserComponent/>
+        
     </div>
-""")
+""")//<Dropdown/>
 public class App implements Component {
     public Signal<Integer> count;
 

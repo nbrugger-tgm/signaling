@@ -14,13 +14,13 @@ repositories {
 }
 
 dependencies {
-    teavm(project(":jsx:processor"))//temporary
-    implementation("com.niton.jainparse:core:3.0.0b1")//temp
+    implementation("com.niton.jainparse:core")//temp
 
     annotationProcessor(project(":jsx:processor"))
     compileOnly(project(":jsx:api"))
     teavm(project(":jsx:runtime"))
-
+    teavm(project(":jsx:parser"))//because the parser is runnable in the frontend - NOT needed for normal JSX components!
+    teavm("com.niton.jainparse:core")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

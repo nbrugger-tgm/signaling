@@ -1,9 +1,6 @@
 plugins {
-    id("java")
+    id("java-library")
 }
-
-group = "com.niton"
-version = "unspecified"
 
 repositories {
     mavenCentral()
@@ -14,8 +11,8 @@ dependencies {
     annotationProcessor("com.google.auto.service:auto-service:1.1.0")
     compileOnly("com.google.auto.service:auto-service:1.1.0")
 
-    implementation("com.niton.jainparse:core:3.0.0b1")
     implementation(project(":jsx:api"))
+    api(project(":jsx:parser"))
 
     //just for type references -> type save generation
     implementation(project(":lib"))

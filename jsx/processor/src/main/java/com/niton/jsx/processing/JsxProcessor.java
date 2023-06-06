@@ -1,12 +1,16 @@
-package com.niton.jsx.parsing;
+package com.niton.jsx.processing;
 
 import com.google.auto.service.AutoService;
 import com.niton.compile.processor.BaseProcessor;
 import com.niton.compile.verify.ProcessingVerification;
 import com.niton.jsx.Component;
-import com.niton.jsx.JSX;
+import com.niton.jsx.rt.JSX;
 import com.niton.jsx.JsxComponent;
+import com.niton.jsx.parsing.JsxParser;
+import com.niton.parser.ast.AstNode;
+import com.niton.parser.ast.LocatableReducedNode;
 import com.niton.parser.ast.ReducedNode;
+import com.niton.parser.exceptions.InterpretationException;
 import com.niton.parser.exceptions.ParsingException;
 import com.squareup.javapoet.*;
 import eu.nitonfx.signaling.api.Context;
@@ -20,10 +24,8 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -82,10 +84,17 @@ public class JsxProcessor extends BaseProcessor {
         var jsx = typeElement.getAnnotation(JsxComponent.class).value().trim();
         try {
             var jsxAst = parser.parse(jsx).reduce("jsx");
-            return transformAST(typeElement, fieldMap, jsxAst);
+            return transformAST(typeElement, fieldMap, jsxAst.orElseThrow());
         } catch (ParsingException e) {
-            logger.fail(element, e.getFullExceptionTree());
-            logger.fail(element,"Most probable error : "+e.getMostProminentDeepException().getMessage());
+//            logger.fail(element, e.getFullExceptionTree());
+            var prominent = e.getMostProminentDeepException();
+//            logger.fail(element,"Most probable error : "+ prominent.getMessage());
+            logger.fail(element, "Syntax error!\n"+ AstNode.Location.oneChar(prominent.getLine(), prominent.getColumn()).markInText(
+                    jsx, 2, prominent.getMessage()
+            ));
+            throw new RuntimeException(prominent);
+        } catch (InterpretationException e){
+            logger.fail(element, e.getSyntaxErrorMessage(jsx));
             throw new RuntimeException(e);
         }
     }
@@ -105,19 +114,24 @@ public class JsxProcessor extends BaseProcessor {
         ).not().failOnViolation();
     }
 
-    private MethodSpec transformAST(TypeElement typeElement, Map<String, ? extends Element> fieldMap, ReducedNode jsxAst) {
-        return MethodSpec.methodBuilder(typeElement.getSimpleName().toString())
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .returns(HTMLElement.class)
-                .addCode(CodeBlock.builder()
-                        .addStatement("var component = new $T()", typeElement)
-                        .addStatement("component.initialize(cx)")
-                        .addStatement("return $L", substituteProps(jsxAst, fieldMap).orElseThrow(()->new RuntimeException("No root element found!")))
-                        .build())
-                .build();
+    private MethodSpec transformAST(TypeElement typeElement, Map<String, ? extends Element> fieldMap, LocatableReducedNode jsxAst) {
+        try {
+            return MethodSpec.methodBuilder(typeElement.getSimpleName().toString())
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .returns(HTMLElement.class)
+                    .addCode(CodeBlock.builder()
+                            .addStatement("var component = new $T()", typeElement)
+                            .addStatement("component.initialize(cx)")
+                            .addStatement("return $L", substituteProps(jsxAst, fieldMap).orElseThrow(() -> new RuntimeException("No root element found!")))
+                            .build())
+                    .build();
+        }catch (IllegalArgumentException e){
+            logger.fail(typeElement,e.getMessage());
+            throw e;
+        }
     }
 
-    private Optional<CodeBlock> substituteProps(ReducedNode jsxAst, Map<String, ? extends Element> fieldMap) {
+    private Optional<CodeBlock> substituteProps(LocatableReducedNode jsxAst, Map<String, ? extends Element> fieldMap) {
         return transformNode(jsxAst).map(CodeBlock::toString).map(s -> {
             for (var entry : fieldMap.entrySet()) {
                 s = s.replaceAll(entry.getKey()+"(?=\\.)", "component." + entry.getKey());
@@ -127,7 +141,7 @@ public class JsxProcessor extends BaseProcessor {
         }).map(CodeBlock::of);
     }
 
-    private Optional<CodeBlock> transformNode(ReducedNode jsxAst) {
+    private Optional<CodeBlock> transformNode(LocatableReducedNode jsxAst) {
         var nodeType = jsxAst.getSubNode("type").orElseThrow().getValue();
         var nodeValue = jsxAst.getSubNode("value").orElseThrow();
         if (nodeType == null) throw new RuntimeException("Node type is null : \n" + jsxAst.format());
@@ -138,9 +152,13 @@ public class JsxProcessor extends BaseProcessor {
         };
     }
 
-    private CodeBlock transformTagNode(ReducedNode nodeValue) {
+    private CodeBlock transformTagNode(LocatableReducedNode nodeValue) {
         var parameters = nodeValue.getSubNode("parameters").orElseThrow().getChildren();
-        var tagName = nodeValue.getSubNode("name").orElseThrow().getValue();
+        var tagName = nodeValue.getSubNode("name").orElseThrow().join();
+        nodeValue.getSubNode("closingName").ifPresent(closingName -> {
+            if (!Objects.equals(closingName.join(), tagName))
+                throw new InterpretationException("Closing tag name does not match opening tag name (%s)".formatted(tagName), closingName, 5);
+        });
         var staticParameters = new HashMap<String, String>(parameters.size());
         var dynamicParameters = new HashMap<String, String>(parameters.size());
         var eventListeners = new HashMap<String, String>(parameters.size());
@@ -177,12 +195,12 @@ public class JsxProcessor extends BaseProcessor {
     }
 
     private void transformParameters(
-            List<ReducedNode> parameters,
+            List<LocatableReducedNode> parameters,
             Map<String, String> staticParamers,
             Map<String, String> dynamicParameters,
             Map<String, String> eventListeners
     ) {
-        for (ReducedNode parameter : parameters) {
+        for (LocatableReducedNode parameter : parameters) {
             var name = parameter.getSubNode("name").orElseThrow().getValue();
             var value = parameter.getSubNode("value").orElseThrow();
             var valueType = JsxParser.ParameterType.valueOf(value.getSubNode("type").orElseThrow().getValue());

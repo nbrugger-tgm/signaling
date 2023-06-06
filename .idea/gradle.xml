@@ -1,4 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/jainparse" name="jainparse">
+                <projects>
+                  <project path="$PROJECT_DIR$/jainparse" />
+                  <project path="$PROJECT_DIR$/jainparse/core" />
+                  <project path="$PROJECT_DIR$/jainparse/generator" />
+                  <project path="$PROJECT_DIR$/jainparse/grammar-parser" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="19 (gradle)" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/jainparse" />
+            <option value="$PROJECT_DIR$/jainparse/core" />
+            <option value="$PROJECT_DIR$/jainparse/generator" />
+            <option value="$PROJECT_DIR$/jainparse/grammar-parser" />
+            <option value="$PROJECT_DIR$/jsx" />
+            <option value="$PROJECT_DIR$/jsx/api" />
+            <option value="$PROJECT_DIR$/jsx/parser" />
+            <option value="$PROJECT_DIR$/jsx/processor" />
+            <option value="$PROJECT_DIR$/jsx/runtime" />
+            <option value="$PROJECT_DIR$/lib" />
+            <option value="$PROJECT_DIR$/webapp" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
 </project>

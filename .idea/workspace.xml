@@ -7,34 +7,56 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d94c9cc2-8354-486d-a32d-96a137b8a3fd" name="Changes" comment="feat: add webapp">
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/Component.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/JsxComponent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/Prop.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/AnyTokenGrammar.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxParser.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxProcessor.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/MatchingBracketGrammar.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/CounterExample.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/src/main/java/example/App.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/src/main/java/example/JsxParserComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/checkstyle-idea.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+    <list default="true" id="d94c9cc2-8354-486d-a32d-96a137b8a3fd" name="Changes" comment="feat: advanced synatx error reporting">
+      <change afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/LocatableReducedNode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/exceptions/InterpretationException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/Input.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/module-info.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/webapp/src/main/java/example/Dropdown.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/AstNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/AstNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/IgnoredNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/IgnoredNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/OptionalNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/OptionalNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/ReducedNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/ReducedNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SequenceNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SequenceNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SwitchNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SwitchNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/TokenNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/TokenNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/exceptions/ParsingException.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/exceptions/ParsingException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/api/Grammar.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/api/Grammar.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/AnyExceptMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/AnyExceptMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/ChainMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/ChainMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/KeywordMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/KeywordMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/RepeatMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/RepeatMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/TokenMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/TokenMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/ListNodeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/ListNodeTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/SuperNodeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/SuperNodeTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/api/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/api/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/processor/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/processor/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/AnyTokenGrammar.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxParser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/processing/JsxProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/MatchingBracketGrammar.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/runtime/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/runtime/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/CounterExample.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/JSX.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/rt/JSX.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webapp/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/JSX.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/JSX.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/JsxParserComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/JsxParserComponent.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/MainClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/MainClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/resources/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/resources/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="module" />
+    </option>
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
@@ -71,13 +93,23 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="signaling" type="f1a62948:ProjectNode" />
-                <item name="jainparse" type="2d1252cf:ModuleNode" />
+                <item name="signaling" type="2d1252cf:ModuleNode" />
+                <item name="webapp" type="2d1252cf:ModuleNode" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="signaling" type="f1a62948:ProjectNode" />
-                <item name="jainparse" type="2d1252cf:ModuleNode" />
+                <item name="signaling" type="2d1252cf:ModuleNode" />
+                <item name="webapp" type="2d1252cf:ModuleNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="signaling" type="f1a62948:ProjectNode" />
+                <item name="signaling" type="2d1252cf:ModuleNode" />
+                <item name="webapp" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -90,15 +122,21 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Record" />
-        <option value="module-info" />
         <option value="Rust File" />
         <option value="Interface" />
+        <option value="package-info" />
+        <option value="module-info" />
         <option value="AnnotationType" />
         <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="14105da698ccffb0363706f38ff0d9d78fb745ea" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="SOFT" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
@@ -133,6 +171,7 @@
   <component name="ProjectViewState">
     <option name="flattenModules" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
@@ -147,10 +186,10 @@
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
     "ShowUsagesActions.previewPropertyKey": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "teavm",
     "go.import.settings.migrated": "true",
-    "jdk.selected.JAVA_MODULE": "17 (installed)",
-    "last_directory_selection": "/home/nils/workspace/priv/signaling/jsx/processor/src/main/java",
+    "jdk.selected.JAVA_MODULE": "20 (gradle)",
+    "last_directory_selection": "/home/nils/workspace/priv/signaling/jsx/api/src/main/java",
     "last_opened_file_path": "/home/nils/workspace/priv/signaling/jsx/parser",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -162,23 +201,31 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
+    "settings.editor.selected.configurable": "preferences.sourceCode.YAML",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.niton.parser.exceptions" />
+      <recent name="com.niton.jsx" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/webapp/src/main/resources" />
       <recent name="$PROJECT_DIR$/webapp/src/main/webapp" />
       <recent name="$PROJECT_DIR$/lib" />
       <recent name="$PROJECT_DIR$/rust/src" />
-      <recent name="$PROJECT_DIR$/rust" />
+    </key>
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="com.niton.parser.ast.AstNode.Location" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="com.niton.parser.token" />
       <recent name="com.niton.signaling" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.niton.jsx.parsing" />
       <recent name="com.niton.jsx" />
     </key>
   </component>
@@ -187,9 +234,10 @@
   </component>
   <component name="RunAnythingCache">
     <option name="myCommands">
-      <command value="gradle clean package" />
       <command value="gradle clean package --no-parallel" />
       <command value="gradle clean package -t" />
+      <command value="gradle build" />
+      <command value="gradle clean package" />
     </option>
   </component>
   <component name="RunManager" selected="Gradle.signaling [clean package]">
@@ -210,30 +258,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="RepeatMatcherTest.testWorking" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":parser:core:test" />
-            <option value="--tests" />
-            <option value="&quot;com.niton.parser.grammar.matchers.RepeatMatcherTest.testWorking&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>true</ForceTestExec>
-      <method v="2" />
-    </configuration>
     <configuration name="Tests in 'jainparse.core'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -245,7 +269,7 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":parser:core:test" />
+            <option value=":jainparse:core:test" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -256,26 +280,50 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="signaling [:parser:core:build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="Tests in 'jainparse.grammar-parser'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
+        <option name="scriptParameters" value="" />
         <option name="taskDescriptions">
           <list />
         </option>
         <option name="taskNames">
           <list>
-            <option value=":parser:core:build" />
+            <option value=":jainparse:grammar-parser:test" />
           </list>
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>false</ForceTestExec>
+      <ForceTestExec>true</ForceTestExec>
+      <method v="2" />
+    </configuration>
+    <configuration name="TokenStreamTest.rollbackFailOnLowestLevel" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":jainparse:core:test" />
+            <option value="--tests" />
+            <option value="&quot;com.niton.parser.token.TokenStreamTest.rollbackFailOnLowestLevel&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
     <configuration name="signaling [clean package]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -283,7 +331,7 @@
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
+        <option name="scriptParameters" value="--stacktrace" />
         <option name="taskDescriptions">
           <list />
         </option>
@@ -328,7 +376,7 @@
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/webapp" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
+        <option name="scriptParameters" value="--stacktrace" />
         <option name="taskDescriptions">
           <list />
         </option>
@@ -347,19 +395,19 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.signaling [test]" />
-      <item itemvalue="Gradle.RepeatMatcherTest.testWorking" />
       <item itemvalue="Gradle.Tests in 'jainparse.core'" />
-      <item itemvalue="Gradle.signaling [:parser:core:build]" />
+      <item itemvalue="Gradle.Tests in 'jainparse.grammar-parser'" />
+      <item itemvalue="Gradle.TokenStreamTest.rollbackFailOnLowestLevel" />
       <item itemvalue="Gradle.signaling [clean package]" />
       <item itemvalue="Gradle.signaling:webapp [package]" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.signaling [clean package]" />
-        <item itemvalue="Gradle.RepeatMatcherTest.testWorking" />
-        <item itemvalue="Gradle.Tests in 'jainparse.core'" />
-        <item itemvalue="Gradle.signaling [:parser:core:build]" />
         <item itemvalue="Gradle.signaling:webapp [package]" />
+        <item itemvalue="Gradle.Tests in 'jainparse.core'" />
+        <item itemvalue="Gradle.Tests in 'jainparse.grammar-parser'" />
+        <item itemvalue="Gradle.TokenStreamTest.rollbackFailOnLowestLevel" />
       </list>
     </recent_temporary>
   </component>
@@ -389,6 +437,8 @@
       <workItem from="1685087781296" duration="886000" />
       <workItem from="1685088966586" duration="43761000" />
       <workItem from="1685154966568" duration="6955000" />
+      <workItem from="1686037167580" duration="51000" />
+      <workItem from="1686064232938" duration="23309000" />
     </task>
     <task id="LOCAL-00001" summary="initial">
       <created>1684522953347</created>
@@ -446,7 +496,21 @@
       <option name="project" value="LOCAL" />
       <updated>1685049566283</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="feat: restructure &amp; hide implementation detail&#10;&#10;BREAKING CHANGE">
+      <created>1686070165548</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1686070165548</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat: restructure &amp; hide implementation detail&#10;&#10;BREAKING CHANGE">
+      <created>1686070182651</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1686070182651</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -464,12 +528,17 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/bytecoder" />
+    </ignored-roots>
     <MESSAGE value="feat: separate API from implementation" />
     <MESSAGE value="feat: initial implementation" />
     <MESSAGE value="initial" />
     <MESSAGE value="feat: deferred nested &amp; recursive effects&#10;&#10;effects that trigger other effects are now deferred to the end of the triggering effect.&#10;```java&#10;effect(()=&gt;{&#10;  signalA.set(...)&#10;  doX();&#10;});&#10;effect(()=&gt;signalB.set(signalA.get()); //effect2&#10;```&#10;now doX() is executed **before** effect2!&#10;&#10;This helps to maintain expected execution in recursive cases.&#10;&#10;Example:&#10;```java&#10;cx.createEffect(() -&gt; {&#10;  if(count.get() &lt; 5){&#10;    count.update(e -&gt; e + 1);&#10;  }&#10;  System.out.println(count.get());&#10;});&#10;```&#10;Output before: `5 5 5 5 5 5`&#10;Output now   : `1 2 3 4 5 5`&#10;which is more expectable in more complex cases" />
     <MESSAGE value="feat: add webapp" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: add webapp" />
+    <MESSAGE value="feat: restructure &amp; hide implementation detail&#10;&#10;BREAKING CHANGE" />
+    <MESSAGE value="feat: advanced synatx error reporting" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: advanced synatx error reporting" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -530,41 +599,28 @@
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <condition expression="matcher == null" language="JAVA" />
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/main/java/com/niton/parser/grammar/api/Grammar.java</url>
-          <line>138</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <condition expression="children.stream().anyMatch(e -&gt; e == null)" language="JAVA" />
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/main/java/com/niton/parser/ast/ReducedNode.java</url>
-          <line>34</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/test/java/com/niton/parser/grammar/matchers/KeywordMatcherTest.java</url>
+          <url>file://$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/grammar/matchers/KeywordMatcherTest.java</url>
           <line>46</line>
           <option name="timeStamp" value="21" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <condition expression="getMessage().startsWith(&quot;expected \&quot;SLASH\&quot; but got  \&quot;LETTERS\&quot;&quot;)" language="JAVA" />
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/main/java/com/niton/parser/exceptions/ParsingException.java</url>
-          <line>97</line>
-          <option name="timeStamp" value="22" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <condition expression="name != null &amp;&amp; name.equals(&quot;children&quot;)" language="JAVA" />
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/main/java/com/niton/parser/grammar/matchers/ChainMatcher.java</url>
+          <url>file://$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/ChainMatcher.java</url>
           <line>63</line>
           <option name="timeStamp" value="24" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/jsx/parser/core/src/test/java/com/niton/parser/grammar/matchers/RepeatMatcherTest.java</url>
+          <url>file://$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/grammar/matchers/RepeatMatcherTest.java</url>
           <line>35</line>
           <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/token/TokenStreamTest.java</url>
+          <line>112</line>
+          <properties>
+            <option name="lambda-ordinal" value="0" />
+          </properties>
+          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

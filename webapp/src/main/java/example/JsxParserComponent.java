@@ -3,6 +3,7 @@ package example;
 import com.niton.jsx.Component;
 import com.niton.jsx.JsxComponent;
 import com.niton.jsx.parsing.JsxParser;
+import com.niton.parser.ast.AstNode;
 import com.niton.parser.exceptions.ParsingException;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.Signal;
@@ -31,9 +32,11 @@ public class JsxParserComponent implements Component {
                 System.out.println("Parsing: " + jsxText.get());
                 var parsed = JsxParser.get().parse(jsxText.get());
                 parseError.set("");
-                return parsed.reduce("jsx").formatHtml();
+                return parsed.reduce("jsx").orElseThrow(()->new ParsingException("Invalid AST: Contact parser author","",0,0,0)).formatHtml();
             }catch (ParsingException e) {
-                parseError.set(e.getMostProminentDeepException().getMessage().replace("\t", "    "));
+                var probable = e.getMostProminentDeepException();
+                var location = AstNode.Location.oneChar(probable.getLine(), probable.getColumn());
+                parseError.set(location.markInText(jsxText.get(), 2, probable.getMessage()));
                 return "Syntax Error";
             }
         };

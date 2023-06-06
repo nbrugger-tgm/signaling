@@ -1,4 +1,4 @@
-package com.niton.jsx;
+package com.niton.jsx.rt;
 
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.Signal;

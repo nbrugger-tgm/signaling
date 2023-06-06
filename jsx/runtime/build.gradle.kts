@@ -2,9 +2,6 @@ plugins {
     id("java-library")
 }
 
-group = "com.niton"
-version = "unspecified"
-
 repositories {
     mavenCentral()
 }
