@@ -24,10 +24,14 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
-
 tasks.test {
     useJUnitPlatform()
 }
+tasks.withType<JavaCompile> {
+    options.isFork = true
+    options.forkOptions.jvmArgs = listOf("--enable-preview")
+}
+
 teavm.js {
     addedToWebApp.set(true)
     mainClass.set("example.MainClass")
@@ -49,7 +53,7 @@ tasks.register("package"){
         copy {
             from("$buildDir/resources/main")
             into("$buildDir/app")
-        }.getDidWork()
+        }
     }
     outputs.dir("$buildDir/app")
 }

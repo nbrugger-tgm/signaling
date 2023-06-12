@@ -4,12 +4,11 @@ import com.google.auto.service.AutoService;
 import com.niton.compile.processor.BaseProcessor;
 import com.niton.compile.verify.ProcessingVerification;
 import com.niton.jsx.Component;
+import com.niton.jsx.parsing.model.*;
 import com.niton.jsx.rt.JSX;
 import com.niton.jsx.JsxComponent;
 import com.niton.jsx.parsing.JsxParser;
 import com.niton.parser.ast.AstNode;
-import com.niton.parser.ast.LocatableReducedNode;
-import com.niton.parser.ast.ReducedNode;
 import com.niton.parser.exceptions.InterpretationException;
 import com.niton.parser.exceptions.ParsingException;
 import com.squareup.javapoet.*;
@@ -49,11 +48,6 @@ public class JsxProcessor extends BaseProcessor {
     }
 
     private Iterable<FieldSpec> jsxEnvironment() {
-        /*
-    public static Context cx = Context.create();
-    public static HTMLDocument document = HTMLDocument.current();
-    public static JSX jsx = new JSX(document, cx);
-         */
         return List.of(
                 FieldSpec.builder(Context.class, "cx", Modifier.STATIC, Modifier.PUBLIC).initializer("Context.create()").build(),
                 FieldSpec.builder(HTMLDocument.class, "document", Modifier.STATIC, Modifier.PUBLIC).initializer("HTMLDocument.current()").build(),
@@ -80,21 +74,21 @@ public class JsxProcessor extends BaseProcessor {
             verifyPublicFinal(field);
         }
         var fieldMap = fields.stream().collect(Collectors.toMap(e -> e.getSimpleName().toString(), Function.identity()));
-        var parser = JsxParser.get();
-        var jsx = typeElement.getAnnotation(JsxComponent.class).value().trim();
+        var parser = new JsxParser();
+        var jsxText = typeElement.getAnnotation(JsxComponent.class).value().trim();
         try {
-            var jsxAst = parser.parse(jsx).reduce("jsx");
-            return transformAST(typeElement, fieldMap, jsxAst.orElseThrow());
+            var jsx = parser.parse(jsxText);
+            return transformAST(typeElement, fieldMap, jsx);
         } catch (ParsingException e) {
 //            logger.fail(element, e.getFullExceptionTree());
             var prominent = e.getMostProminentDeepException();
 //            logger.fail(element,"Most probable error : "+ prominent.getMessage());
             logger.fail(element, "Syntax error!\n"+ AstNode.Location.oneChar(prominent.getLine(), prominent.getColumn()).markInText(
-                    jsx, 2, prominent.getMessage()
+                    jsxText, 2, prominent.getMessage()
             ));
             throw new RuntimeException(prominent);
         } catch (InterpretationException e){
-            logger.fail(element, e.getSyntaxErrorMessage(jsx));
+            logger.fail(element, e.getSyntaxErrorMessage(jsxText));
             throw new RuntimeException(e);
         }
     }
@@ -114,10 +108,11 @@ public class JsxProcessor extends BaseProcessor {
         ).not().failOnViolation();
     }
 
-    private MethodSpec transformAST(TypeElement typeElement, Map<String, ? extends Element> fieldMap, LocatableReducedNode jsxAst) {
+    private MethodSpec transformAST(TypeElement typeElement, Map<String, ? extends Element> fieldMap, JsxElement jsxAst) {
         try {
             return MethodSpec.methodBuilder(typeElement.getSimpleName().toString())
                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .addTypeVariables(typeElement.getTypeParameters().stream().map(TypeVariableName::get).collect(Collectors.toList()))
                     .returns(HTMLElement.class)
                     .addCode(CodeBlock.builder()
                             .addStatement("var component = new $T()", typeElement)
@@ -131,7 +126,7 @@ public class JsxProcessor extends BaseProcessor {
         }
     }
 
-    private Optional<CodeBlock> substituteProps(LocatableReducedNode jsxAst, Map<String, ? extends Element> fieldMap) {
+    private Optional<CodeBlock> substituteProps(JsxElement jsxAst, Map<String, ? extends Element> fieldMap) {
         return transformNode(jsxAst).map(CodeBlock::toString).map(s -> {
             for (var entry : fieldMap.entrySet()) {
                 s = s.replaceAll(entry.getKey()+"(?=\\.)", "component." + entry.getKey());
@@ -141,46 +136,35 @@ public class JsxProcessor extends BaseProcessor {
         }).map(CodeBlock::of);
     }
 
-    private Optional<CodeBlock> transformNode(LocatableReducedNode jsxAst) {
-        var nodeType = jsxAst.getSubNode("type").orElseThrow().getValue();
-        var nodeValue = jsxAst.getSubNode("value").orElseThrow();
-        if (nodeType == null) throw new RuntimeException("Node type is null : \n" + jsxAst.format());
-        return switch (JsxParser.NodeType.valueOf(nodeType)) {
-            case TEXT_NODE -> transformTextNode(nodeValue);
-            case EXPRESSION_NODE -> Optional.of(transformExpressionNode(nodeValue));
-            case CONTAINER_TAG, SELF_CLOSING_TAG -> Optional.of(transformTagNode(nodeValue));
+    private Optional<CodeBlock> transformNode(JsxElement jsxAst) {
+        return switch (jsxAst) {
+            case JsxTextNode textNode -> transformTextNode(textNode);
+            case JsxExpressionNode expressionNode -> Optional.of(transformExpressionNode(expressionNode));
+            case JsxTag tag -> Optional.of(transformTagNode(tag));
         };
     }
 
-    private CodeBlock transformTagNode(LocatableReducedNode nodeValue) {
-        var parameters = nodeValue.getSubNode("parameters").orElseThrow().getChildren();
-        var tagName = nodeValue.getSubNode("name").orElseThrow().join();
-        nodeValue.getSubNode("closingName").ifPresent(closingName -> {
-            if (!Objects.equals(closingName.join(), tagName))
-                throw new InterpretationException("Closing tag name does not match opening tag name (%s)".formatted(tagName), closingName, 5);
-        });
-        var staticParameters = new HashMap<String, String>(parameters.size());
-        var dynamicParameters = new HashMap<String, String>(parameters.size());
-        var eventListeners = new HashMap<String, String>(parameters.size());
-        transformParameters(parameters, staticParameters, dynamicParameters, eventListeners);
-        var staticMap = staticParameters.entrySet().stream().flatMap(quotedValuePairs(true)).collect(Collectors.joining(", "));
-        var dynamicMap = dynamicParameters.entrySet().stream().flatMap(quotedValuePairs(false)).collect(Collectors.joining(", "));
-        var eventMap = eventListeners.entrySet().stream().flatMap(quotedValuePairs(false)).collect(Collectors.joining(", "));
+    private CodeBlock transformTagNode(JsxTag tag) {
+        var staticMap = tag.staticAttributes().entrySet().stream().flatMap(quotedValuePairs(true)).collect(Collectors.joining(", "));
+        var dynamicMap = tag.dynamicAttributes().entrySet().stream().flatMap(quotedValuePairs(false)).collect(Collectors.joining(", "));
+        var eventMap = tag instanceof JsxHtmlTag htmlTag ? htmlTag.eventHandlers().entrySet().stream().flatMap(quotedValuePairs(false)).collect(Collectors.joining(", ")) : "";
 
-        if(Character.isUpperCase(tagName.charAt(0))){
-            return transformComponentNode(tagName, staticMap, dynamicMap, eventMap);
-        }
-        var children = nodeValue.getSubNode("children");
-        return children.map(childrenNode -> {
-            var childList = childrenNode.getChildren().stream().map(this::transformNode).flatMap(Optional::stream).map(CodeBlock::toString).collect(Collectors.joining(",\n\t"));
-            return CodeBlock.builder()
-                    .add("jsx.generic($S, $T.of($L), $T.of($L), $T.of($L), $T.of(\n\t$L\n))", tagName,Map.class, staticMap,Map.class, dynamicMap, Map.class,eventMap,List.class, childList)
-                    .build();
-        }).orElseGet(
-                () -> CodeBlock.builder()
-                        .add("jsx.generic($S, $T.of($L), $T.of($L), $T.of($L))", tagName,Map.class, staticMap,Map.class, dynamicMap,Map.class, eventMap)
-                        .build()
-        );
+        return switch (tag) {
+            case JsxComponentTag __ -> transformComponentNode(tag.name(), staticMap, dynamicMap, eventMap);
+            case JsxHtmlTag html -> {
+                if(html.selfClosing()){
+                   yield CodeBlock.builder()
+                            .add("jsx.generic($S, $T.of($L), $T.of($L), $T.of($L))", tag.name(),Map.class, staticMap,Map.class, dynamicMap,Map.class, eventMap)
+                            .build();
+                }else {
+                    var childList = Arrays.stream(html.children()).map(this::transformNode).flatMap(Optional::stream).map(CodeBlock::toString).collect(Collectors.joining(",\n\t"));
+                    yield  CodeBlock.builder()
+                            .add("jsx.generic($S, $T.of($L), $T.of($L), $T.of($L), $T.of(\n\t$L\n))", tag.name(),Map.class, staticMap,Map.class, dynamicMap, Map.class,eventMap,List.class, childList)
+                            .build();
+                }
+            }
+        };
+
     }
 
     private CodeBlock transformComponentNode(String nodeValue, String staticMap, String dynamicMap, String eventMap) {
@@ -194,41 +178,14 @@ public class JsxProcessor extends BaseProcessor {
         return e -> Stream.of("\"" + e.getKey() + "\"", quoteValue ? "\"" + e.getValue() + "\"" : e.getValue());
     }
 
-    private void transformParameters(
-            List<LocatableReducedNode> parameters,
-            Map<String, String> staticParamers,
-            Map<String, String> dynamicParameters,
-            Map<String, String> eventListeners
-    ) {
-        for (LocatableReducedNode parameter : parameters) {
-            var name = parameter.getSubNode("name").orElseThrow().getValue();
-            var value = parameter.getSubNode("value").orElseThrow();
-            var valueType = JsxParser.ParameterType.valueOf(value.getSubNode("type").orElseThrow().getValue());
-            value = value.getSubNode("value").orElseThrow();
-            switch (valueType) {
-                case STATIC_VALUE -> staticParamers.put(name, value.getSubNode("content").orElseThrow().getValue());
-                case EXPRESSION_VALUE -> {
-                    var expression = value.getValue();
-                    if (name.startsWith("on")) {
-                        var withoutOn = name.substring(2);
-                        withoutOn = Character.toLowerCase(withoutOn.charAt(0)) + withoutOn.substring(1);
-                        eventListeners.put(withoutOn, expression);
-                    } else {
-                        dynamicParameters.put(name, "()->"+expression);
-                    }
-                }
-            }
-        }
-    }
-
-    private CodeBlock transformExpressionNode(ReducedNode nodeValue) {
+    private CodeBlock transformExpressionNode(JsxExpressionNode nodeValue) {
         return CodeBlock.builder()
-                .add("jsx.text(()->$L)", nodeValue.getValue())
+                .add("jsx.text(()->$L)", nodeValue.expression())
                 .build();
     }
 
-    private Optional<CodeBlock> transformTextNode(ReducedNode jsxAst) {
-        var value = jsxAst.getValue().trim().replace("\n", "").replace("\r", "");
+    private Optional<CodeBlock> transformTextNode(JsxTextNode jsxAst) {
+        var value = jsxAst.text().trim().replace("\n", "").replace("\r", "");
         if(value.isEmpty()) return Optional.empty();
         return Optional.of(CodeBlock.builder()
                 .indent()

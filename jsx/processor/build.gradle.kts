@@ -6,7 +6,9 @@ repositories {
     mavenCentral()
     maven("https://niton.jfrog.io/artifactory/java-libs/")
 }
-
+tasks.withType(JavaCompile::class.java) {
+    options.compilerArgs.add("--enable-preview")
+}
 dependencies {
     annotationProcessor("com.google.auto.service:auto-service:1.1.0")
     compileOnly("com.google.auto.service:auto-service:1.1.0")

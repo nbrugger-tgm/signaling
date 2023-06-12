@@ -7,46 +7,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d94c9cc2-8354-486d-a32d-96a137b8a3fd" name="Changes" comment="feat: advanced synatx error reporting">
-      <change afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/LocatableReducedNode.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/exceptions/InterpretationException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/com/niton/jsx/Input.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jsx/api/src/main/java/module-info.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webapp/src/main/java/example/Dropdown.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="d94c9cc2-8354-486d-a32d-96a137b8a3fd" name="Changes" comment="style: minor improvements">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/AstNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/AstNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/IgnoredNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/IgnoredNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/OptionalNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/OptionalNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/ReducedNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/ReducedNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SequenceNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SequenceNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SwitchNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/SwitchNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/TokenNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/ast/TokenNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/exceptions/ParsingException.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/exceptions/ParsingException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/api/Grammar.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/api/Grammar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/AnyExceptMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/AnyExceptMatcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/ChainMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/ChainMatcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/KeywordMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/KeywordMatcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/RepeatMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/RepeatMatcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/TokenMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/matchers/TokenMatcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/ListNodeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/ListNodeTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/SuperNodeTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/test/java/com/niton/parser/ast/SuperNodeTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/api/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/api/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/api/GrammarMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/jainparse/core/src/main/java/com/niton/parser/grammar/api/GrammarMatcher.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jsx/processor/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/processor/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/AnyTokenGrammar.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxParser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/JsxProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/processing/JsxProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/parsing/MatchingBracketGrammar.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/runtime/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/runtime/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/CounterExample.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/JSX.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/runtime/src/main/java/com/niton/jsx/rt/JSX.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/processing/JsxProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/jsx/processor/src/main/java/com/niton/jsx/processing/JsxProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webapp/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webapp/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/Dropdown.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/Dropdown.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/JsxParserComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/JsxParserComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webapp/src/main/java/example/MainClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/webapp/src/main/java/example/MainClass.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -171,7 +141,6 @@
   <component name="ProjectViewState">
     <option name="flattenModules" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
@@ -184,6 +153,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.go.formatter.settings.were.checked": "true",
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ShowUsagesActions.previewPropertyKey": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "teavm",
@@ -201,7 +171,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.sourceCode.YAML",
+    "settings.editor.selected.configurable": "Errors",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -238,6 +208,7 @@
       <command value="gradle clean package -t" />
       <command value="gradle build" />
       <command value="gradle clean package" />
+      <command value="gradle clean" />
     </option>
   </component>
   <component name="RunManager" selected="Gradle.signaling [clean package]">
@@ -302,30 +273,6 @@
       <ForceTestExec>true</ForceTestExec>
       <method v="2" />
     </configuration>
-    <configuration name="TokenStreamTest.rollbackFailOnLowestLevel" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":jainparse:core:test" />
-            <option value="--tests" />
-            <option value="&quot;com.niton.parser.token.TokenStreamTest.rollbackFailOnLowestLevel&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>true</ForceTestExec>
-      <method v="2" />
-    </configuration>
     <configuration name="signaling [clean package]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -339,6 +286,28 @@
           <list>
             <option value="clean" />
             <option value="package" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <ForceTestExec>false</ForceTestExec>
+      <method v="2" />
+    </configuration>
+    <configuration name="signaling [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -395,9 +364,9 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.signaling [test]" />
+      <item itemvalue="Gradle.signaling [clean]" />
       <item itemvalue="Gradle.Tests in 'jainparse.core'" />
       <item itemvalue="Gradle.Tests in 'jainparse.grammar-parser'" />
-      <item itemvalue="Gradle.TokenStreamTest.rollbackFailOnLowestLevel" />
       <item itemvalue="Gradle.signaling [clean package]" />
       <item itemvalue="Gradle.signaling:webapp [package]" />
     </list>
@@ -405,9 +374,9 @@
       <list>
         <item itemvalue="Gradle.signaling [clean package]" />
         <item itemvalue="Gradle.signaling:webapp [package]" />
+        <item itemvalue="Gradle.signaling [clean]" />
         <item itemvalue="Gradle.Tests in 'jainparse.core'" />
         <item itemvalue="Gradle.Tests in 'jainparse.grammar-parser'" />
-        <item itemvalue="Gradle.TokenStreamTest.rollbackFailOnLowestLevel" />
       </list>
     </recent_temporary>
   </component>
@@ -438,7 +407,10 @@
       <workItem from="1685088966586" duration="43761000" />
       <workItem from="1685154966568" duration="6955000" />
       <workItem from="1686037167580" duration="51000" />
-      <workItem from="1686064232938" duration="23309000" />
+      <workItem from="1686064232938" duration="23374000" />
+      <workItem from="1686556544517" duration="20000" />
+      <workItem from="1686556767033" duration="7000" />
+      <workItem from="1686585152462" duration="11956000" />
     </task>
     <task id="LOCAL-00001" summary="initial">
       <created>1684522953347</created>
@@ -510,7 +482,28 @@
       <option name="project" value="LOCAL" />
       <updated>1686070182651</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="feat: advanced synatx error reporting">
+      <created>1686087560256</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1686087560256</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat: use the advanced syntax features">
+      <created>1686087600182</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1686087600182</updated>
+    </task>
+    <task id="LOCAL-00013" summary="style: minor improvements">
+      <created>1686596911617</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1686596911617</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -538,7 +531,9 @@
     <MESSAGE value="feat: add webapp" />
     <MESSAGE value="feat: restructure &amp; hide implementation detail&#10;&#10;BREAKING CHANGE" />
     <MESSAGE value="feat: advanced synatx error reporting" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: advanced synatx error reporting" />
+    <MESSAGE value="feat: use the advanced syntax features" />
+    <MESSAGE value="style: minor improvements" />
+    <option name="LAST_COMMIT_MESSAGE" value="style: minor improvements" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
