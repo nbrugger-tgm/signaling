@@ -1,9 +1,9 @@
 package com.niton.jsx.parsing;
 
 import com.niton.parser.DefaultParser;
-import com.niton.parser.grammar.GrammarReferenceMap;
 import com.niton.parser.grammar.api.Grammar;
 import com.niton.parser.grammar.api.GrammarName;
+import com.niton.parser.grammar.api.GrammarReferenceMap;
 import com.niton.parser.grammar.types.ChainGrammar;
 import com.niton.parser.token.DefaultToken;
 import com.niton.parser.token.Tokenable;

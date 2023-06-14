@@ -12,12 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class MatchingBracketGrammar<T extends AstNode> extends Grammar<GrammarMatcher<T>, T> {
+public class MatchingBracketGrammar<T extends AstNode> extends Grammar<T> {
     private final String openingToken;
     private final String closingToken;
-    private final Grammar<?, T> inner;
+    private final Grammar<T> inner;
 
-    public MatchingBracketGrammar(String openingToken, String closingToken, Grammar<?, T> inner) {
+    public MatchingBracketGrammar(String openingToken, String closingToken, Grammar<T> inner) {
         this.openingToken = openingToken;
         this.closingToken = closingToken;
         this.inner = inner;
