@@ -1,3 +1,6 @@
 [submodule "bytecoder"]
 	path = bytecoder
 	url = git@github.com:nbrugger-tgm/Bytecoder.git
+[submodule "jsx-parser"]
+    path = jsx/parser
+    url = git@github.com:nbrugger-tgm/jsx-parser.git
