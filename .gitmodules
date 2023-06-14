@@ -1,0 +1,3 @@
+[submodule "bytecoder"]
+	path = bytecoder
+	url = git@github.com:nbrugger-tgm/Bytecoder.git
