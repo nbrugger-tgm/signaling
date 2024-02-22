@@ -12,4 +12,6 @@ public interface Context {
     <T> Signal<T> createSignal(T initial);
 
     void createEffect(Runnable effect);
+
+    void cleanup(Runnable o);
 }

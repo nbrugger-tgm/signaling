@@ -1,8 +1,12 @@
 import eu.nitonfx.signaling.api.Context;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class UseEffectTest {
@@ -75,7 +79,7 @@ public class UseEffectTest {
         var count2 = cx.createSignal(0);
         cx.createEffect(() -> {
             count2.get();
-            cx.createEffect(() -> consumer.accept(count2.get()+count.get()));
+            cx.createEffect(() -> consumer.accept(count2.get() + count.get()));
         });
         count.set(5);
         count2.set(10);
@@ -230,7 +234,7 @@ public class UseEffectTest {
     }
 
     @Test
-    void recursiveEffect(){
+    void recursiveEffect() {
         var cx = Context.create();
         var count = cx.createSignal(0);
 
@@ -238,7 +242,7 @@ public class UseEffectTest {
 
         cx.createEffect(() -> {
             target.accept(count.get());
-            if(count.get() < 5){
+            if (count.get() < 5) {
                 count.update(e -> e + 1);
             }
         });
@@ -249,5 +253,86 @@ public class UseEffectTest {
         verify(target).accept(3);
         verify(target).accept(4);
         verify(target).accept(5);
+    }
+
+    @Test
+    void nestedEffectsAreCleaned() {
+        var cx = Context.create();
+        var count = cx.createSignal(0);
+        var count2 = cx.createSignal(0);
+        Consumer<Integer> consumer = mock();
+        cx.createEffect(() -> {
+            count.get();
+            cx.createEffect(() -> consumer.accept(count2.get()));
+        });
+        count.update(e -> e + 1);
+        count.update(e -> e + 1);
+        count2.set(5);
+        verify(consumer, times(3)).accept(0);
+        verify(consumer).accept(5);
+    }
+
+    @RepeatedTest(10)
+    void executionOrder(){
+        var cx = Context.create();
+        var rootCount = cx.createSignal(0);
+        var count1 = cx.createSignal(0);
+        var count2 = cx.createSignal(0);
+        var count3 = cx.createSignal(0);
+        var count4 = cx.createSignal(0);
+        var count5 = cx.createSignal(0);
+        var list = new ArrayList<>(5);
+
+        cx.createEffect(() -> {
+            if(count5.get() == 5) {
+                list.add(5);
+            }
+        });
+        cx.createEffect(() -> {
+            if(count4.get() == 5) {
+                list.add(4);
+            }
+        });
+        cx.createEffect(() -> {
+            if(count3.get() == 5) {
+                list.add(3);
+            }
+            count4.set(count3.get());
+            cx.createEffect(()-> count5.set(count3.get()));
+        });
+        cx.createEffect(() -> {
+            if(count2.get() == 5) {
+                list.add(2);
+            }
+        });
+        cx.createEffect(() -> {
+            if(count1.get() == 5) {
+                list.add(1);
+            }
+        });
+        cx.createEffect(() -> {
+            cx.createEffect(() -> count1.set(rootCount.get()));
+            count2.set(rootCount.get());
+            count3.set(rootCount.get());
+        });
+        rootCount.set(5);
+        assertThat(list).containsExactly(2,3,4,1,5);
+    }
+
+    @Test
+    void cleanupRunsBeforeNewExecution(){
+        var cx = Context.create();
+        var count = cx.createSignal(0);
+        Consumer<Integer> cleanup = mock();
+        Consumer<Integer> effect = mock();
+        cx.createEffect(() -> {
+            effect.accept(count.get());
+            cx.cleanup(()->cleanup.accept(count.getUntracked()));
+        });
+        count.set(5);
+        InOrder inOrder = inOrder(cleanup, effect);
+        inOrder.verify(effect).accept(0);
+        inOrder.verify(cleanup).accept(5);
+        inOrder.verify(effect).accept(5);
     }
 }

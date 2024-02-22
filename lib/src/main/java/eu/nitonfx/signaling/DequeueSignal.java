@@ -6,7 +6,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static eu.nitonfx.signaling.SetStackContext.copyOf;
+import static java.util.Set.copyOf;
+
 
 public class DequeueSignal<T> implements Subscribable, Signal<T> {
     private final Consumer<Subscribable> readCallback;

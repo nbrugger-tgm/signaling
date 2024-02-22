@@ -3,15 +3,17 @@ package eu.nitonfx.signaling;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.Signal;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
 public class SetStackContext implements Context {
     private final Set<Subscribable> dependencies = new HashSet<>();
-    private final Set<Effect> nestedEffects = new HashSet<>();
-    private final Set<Supplier<Set<Runnable>>> deferredEffects = new HashSet<>();
+    private final List<Effect> nestedEffects = new ArrayList<>(3);
+    private final List<Supplier<Set<Runnable>>> deferredSignalUpdate = new ArrayList<>(8);
+    private final Set<Runnable> cleanup = new HashSet<>();
     private boolean recording = false;
 
     @Override
@@ -22,8 +24,10 @@ public class SetStackContext implements Context {
             dependencies.add(subscribable);
         }, (observers) -> {
             if (recording)
-                deferredEffects.add(observers);
-            else observers.get().forEach(Runnable::run);
+                deferredSignalUpdate.add(observers);
+            else for (Runnable runnable : observers.get()) {
+                runnable.run();
+            }
         }, initial);
     }
 
@@ -34,20 +38,21 @@ public class SetStackContext implements Context {
         else effectWrapper.run();
     }
 
+    @Override
+    public void cleanup(Runnable func) {
+        if (!recording)
+            throw new IllegalStateException("Cleanup was called outside of an effect!");
+        cleanup.add(func);
+    }
+
     private EffectCapture runAndCapture(Runnable effect) {
         dependencies.clear();
         nestedEffects.clear();
-        deferredEffects.clear();
+        deferredSignalUpdate.clear();
+        cleanup.clear();
         recording = true;
         effect.run();
         recording = false;
-        return new EffectCapture(copyOf(dependencies), copyOf(nestedEffects), copyOf(deferredEffects));
+        return new EffectCapture(Set.copyOf(dependencies), List.copyOf(nestedEffects), List.copyOf(deferredSignalUpdate), Set.copyOf(cleanup));
     }
-
-    public static<T> Set<T> copyOf(Set<T> dependencies) {
-        //Set.copyOf() not supported by teaVm
-        return Collections.unmodifiableSet(new HashSet<>(dependencies));
-    }
-
-
 }
