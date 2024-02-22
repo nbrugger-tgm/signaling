@@ -6,12 +6,13 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class Effect implements Runnable, Subscription {
+public class Effect implements Runnable {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
-    private Set<? extends Subscription> subscriptions = Set.of();
-    private Set<? extends Subscription> nestedEffects = Set.of();
+    private Set<? extends Subscription> subscriptions = new HashSet<>();
+    private List<Effect> nestedEffects = List.of();
     private Predicate<Subscribable> dependencyFilter = (e) -> true;
+    private Set<Runnable> cleanup = new HashSet<>();
 
     public Effect(Runnable effect, Function<Runnable, EffectCapture> capturingExecutor) {
         this.effect = effect;
@@ -20,12 +21,16 @@ public class Effect implements Runnable, Subscription {
 
     @Override
     public void run() {
-        var capture = capturingExecutor.apply(effect);
         unsubscribe();
+        var capture = capturingExecutor.apply(effect);
+        cleanup = capture.cleanup();
         var dependencies = capture.dependencies().stream().filter(dependencyFilter).collect(Collectors.toSet());
         subscriptions = dependencies.stream().map(subscribable -> subscribable.subscribe(this)).collect(Collectors.toSet());
-        var allNestedEffects = new HashSet<>(capture.nestedEffects());
-        allNestedEffects.forEach(nested -> nested.dependencyFilter = dependencyFilter.and(not(dependencies::contains)));
+        var allNestedEffects = new ArrayList<>(capture.nestedEffects());
+        allNestedEffects.forEach(nested -> nested.dependencyFilter = dependencyFilter.and(not(dep -> dependencies.stream().anyMatch(inner -> inner == dep))));
+
+        //If the effect caused writes to signals, the effects attached to this signals are not run immediately, but deferred to the end of the current effect
+        //This is the deffered execution of this effects
         Queue<Runnable> deferred = capture.flatDeferredEffects().collect(Collectors.toCollection(LinkedList::new));
         while (!deferred.isEmpty()) {
             var runnable = deferred.poll();
@@ -33,10 +38,13 @@ public class Effect implements Runnable, Subscription {
                 runnable.run();
                 continue;
             }
-            var innerCapture = capturingExecutor.apply(effect.effect);
             effect.unsubscribe();
+            var innerCapture = capturingExecutor.apply(effect.effect);
             var innerDependencies = innerCapture.dependencies().stream().filter(effect.dependencyFilter).collect(Collectors.toSet());
-            effect.subscriptions = innerDependencies.stream().filter(effect.dependencyFilter).map(subscribable -> subscribable.subscribe(effect)).collect(Collectors.toSet());
+            effect.subscriptions = innerDependencies.stream()
+                    .filter(effect.dependencyFilter)
+                    .map(subscribable -> subscribable.subscribe(effect))
+                    .collect(Collectors.toSet());
             allNestedEffects.addAll(innerCapture.nestedEffects().stream().map(
                     nested -> {
                         nested.dependencyFilter = effect.dependencyFilter.and(not(innerDependencies::contains));
@@ -46,6 +54,7 @@ public class Effect implements Runnable, Subscription {
             deferred.addAll(innerCapture.flatDeferredEffects().toList());
         }
         allNestedEffects.forEach(Effect::run);
+        nestedEffects = allNestedEffects;
     }
 
     //Predicate.not() is not available in TeaVM
@@ -59,9 +68,12 @@ public class Effect implements Runnable, Subscription {
             subscription.unsubscribe();
         }
         subscriptions = Collections.emptySet();
-        for (Subscription nestedEffect : nestedEffects) {
+        for (Effect nestedEffect : nestedEffects) {
             nestedEffect.unsubscribe();
         }
-        nestedEffects = Collections.emptySet();
+        nestedEffects = Collections.emptyList();
+
+        cleanup.forEach(Runnable::run);
+        cleanup = Collections.emptySet();
     }
 }
