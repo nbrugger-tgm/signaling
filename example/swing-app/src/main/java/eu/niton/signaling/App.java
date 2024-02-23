@@ -1,12 +1,14 @@
 package eu.niton.signaling;
 
 import eu.nitonfx.signaling.api.Context;
+import eu.nitonfx.signaling.api.ListSignal;
+import eu.nitonfx.signaling.api.Signal;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class App {
@@ -22,42 +24,120 @@ public class App {
         });
     }
 
-    public static JPanel app() {
-        var count = cx.createSignal(0);
+    private record TodoItem(String text, boolean done) { }
+
+    private static JPanel app() {
+        var todos = cx.createSignal(new TodoItem[0]);
         final var pane = new JPanel();
+        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
         var label = new JLabel();
-        cx.createEffect(() -> label.setText(count.get().toString()));
+        cx.createEffect(() -> label.setText(todos.size() + " TODOs"));
         pane.add(label);
-        var button = new JButton("Increment");
-        button.addActionListener(e -> count.update(i -> i + 1));
-        pane.add(button);
-        insertStream(
-                ()-> IntStream.range(0, count.get()).mapToObj(i -> new JButton("Button " + i)),
-                comp -> {
-                    System.out.println("Adding "+(i++));
-                    pane.add(comp);
-                },
-                comp1 -> {
-                    pane.remove(comp1);
-                    System.out.println("Removing "+(i++));
-                }
-        );
+
+        var adder = todoInput(todos);
+        pane.add(adder);
+
+        var todoList = todoList(todos);
+       pane.add(todoList);
 
         return pane;
     }
-    public static<T> void insert(Supplier<T> element, Consumer<T> adder, Consumer<T> remover) {
+    private static JPanel todoList(ListSignal<TodoItem> todos) {
+        var pane = new JPanel();
+        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+        insertIter(todos, App::todoItem, pane);
+        return pane;
+    }
+
+    private static JPanel todoItem(Signal<TodoItem> todo) {
+        var item = new JPanel();
+        var label = new JLabel();
+        var checkbox = new JCheckBox();
+        cx.createEffect(()->{
+            checkbox.setSelected(todo.get().done());
+            label.setText(todo.get().text());
+            label.setEnabled(!todo.get().done());
+        });
+        checkbox.addActionListener(e -> todo.set(new TodoItem(todo.get().text(), checkbox.isSelected())));
+        item.add(checkbox);
+        item.add(label);
+        return item;
+    }
+
+    private static JPanel todoInput(ListSignal<TodoItem> todos) {
+        var pane = new JPanel();
+        var input = new JTextField();
+        input.setColumns(20);
+        var button = new JButton("Add");
+        button.addActionListener(e -> todos.add(new TodoItem(input.getText(), false)));
+        pane.add(input);
+        pane.add(button);
+        return pane;
+    }
+
+    private static<T extends JComponent> void insert(Supplier<T> element, JComponent parent) {
+        cx.createEffect(()->{
+            var base = element.get();
+            parent.add(base);
+            parent.validate();
+            cx.cleanup(()->parent.remove(base));
+        });
+    }
+    private static<T extends JComponent> void insertStream(Supplier<Stream<T>> element, JComponent parent) {
+        insertIter(()->element.get().toList(), parent);
+    }
+    private static<T extends JComponent> void insertIter(Supplier<Iterable<T>> element, JComponent parent) {
+        cx.createEffect(()->element.get().forEach(t->insert(()->t, parent)));
+    }
+    private static<T,E extends JComponent> void insert(Supplier<T> element, Function<T,E> mapper, JComponent parent) {
+        cx.createEffect(()->{
+            var base = mapper.apply(element.get());
+            parent.add(base);
+            parent.validate();
+            cx.cleanup(()->parent.remove(base));
+        });
+    }
+    private static<T,E extends JComponent> void insertIter(Supplier<Iterable<T>> element,Function<T,E> mapper, JComponent parent) {
+        cx.createEffect(()->element.get().forEach(t->insert(()->t,mapper, parent)));
+    }
+    private static<T,E extends JComponent> void insertIter(ListSignal<T> elements,Function<Signal<T>,E> mapper, JComponent parent) {
+        cx.createEffect(()-> {
+            for (int i = 0; i < elements.size(); i++) {
+                var elem = elements.getSignal(i);
+                insert(() -> mapper.apply(elem), parent);
+            }
+        });
+    }
+
+    private static<T> void insert(Supplier<T> element, Consumer<T> adder, Consumer<T> remover) {
         cx.createEffect(()->{
             var base = element.get();
             adder.accept(base);
             cx.cleanup(()->remover.accept(base));
         });
     }
-
-
-    public static<T> void insertStream(Supplier<Stream<T>> element, Consumer<T> adder, Consumer<T> remover) {
+    private static<T,E> void insert(Supplier<T> element, Function<T,E> mapper, Consumer<E> adder, Consumer<E> remover) {
+        cx.createEffect(()->{
+            var base = mapper.apply(element.get());
+            adder.accept(base);
+            cx.cleanup(()->remover.accept(base));
+        });
+    }
+    private static<T> void insertStream(Supplier<Stream<T>> element, Consumer<T> adder, Consumer<T> remover) {
         insertIter(()->element.get().toList(), adder, remover);
     }
-    public static<T> void insertIter(Supplier<Iterable<T>> element, Consumer<T> adder, Consumer<T> remover) {
+    private static<T> void insertIter(Supplier<Iterable<T>> element, Consumer<T> adder, Consumer<T> remover) {
         cx.createEffect(()->element.get().forEach(t->insert(()->t, adder, remover)));
+    }
+    private static<T,E> void insertIter(Supplier<Iterable<T>> element,Function<T,E> mapper, Consumer<E> adder, Consumer<E> remover) {
+        cx.createEffect(()->element.get().forEach(t->insert(()->t,mapper, adder, remover)));
+    }
+    private static<T,E> void insertIter(ListSignal<T> elements,Function<Signal<T>,E> mapper, Consumer<E> adder, Consumer<E> remover) {
+        cx.createEffect(()-> {
+            for (int i = 0; i < elements.size(); i++) {
+                var elem = elements.getSignal(i);
+                insert(() -> mapper.apply(elem), adder, remover);
+            }
+        });
     }
 }
