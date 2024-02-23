@@ -45,7 +45,7 @@ public class App {
     private static JPanel todoList(ListSignal<TodoItem> todos) {
         var pane = new JPanel();
         pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-        insertIter(todos, App::todoItem, pane);
+        insert(todos, App::todoItem, pane);
         return pane;
     }
 
@@ -83,60 +83,11 @@ public class App {
             cx.cleanup(()->parent.remove(base));
         });
     }
-    private static<T extends JComponent> void insertStream(Supplier<Stream<T>> element, JComponent parent) {
-        insertIter(()->element.get().toList(), parent);
-    }
-    private static<T extends JComponent> void insertIter(Supplier<Iterable<T>> element, JComponent parent) {
-        cx.createEffect(()->element.get().forEach(t->insert(()->t, parent)));
-    }
-    private static<T,E extends JComponent> void insert(Supplier<T> element, Function<T,E> mapper, JComponent parent) {
-        cx.createEffect(()->{
-            var base = mapper.apply(element.get());
-            parent.add(base);
-            parent.validate();
-            cx.cleanup(()->parent.remove(base));
-        });
-    }
-    private static<T,E extends JComponent> void insertIter(Supplier<Iterable<T>> element,Function<T,E> mapper, JComponent parent) {
-        cx.createEffect(()->element.get().forEach(t->insert(()->t,mapper, parent)));
-    }
-    private static<T,E extends JComponent> void insertIter(ListSignal<T> elements,Function<Signal<T>,E> mapper, JComponent parent) {
+    private static<T,E extends JComponent> void insert(ListSignal<T> elements,Function<Signal<T>,E> mapper, JComponent parent) {
         cx.createEffect(()-> {
             for (int i = 0; i < elements.size(); i++) {
                 var elem = elements.getSignal(i);
                 insert(() -> mapper.apply(elem), parent);
-            }
-        });
-    }
-
-    private static<T> void insert(Supplier<T> element, Consumer<T> adder, Consumer<T> remover) {
-        cx.createEffect(()->{
-            var base = element.get();
-            adder.accept(base);
-            cx.cleanup(()->remover.accept(base));
-        });
-    }
-    private static<T,E> void insert(Supplier<T> element, Function<T,E> mapper, Consumer<E> adder, Consumer<E> remover) {
-        cx.createEffect(()->{
-            var base = mapper.apply(element.get());
-            adder.accept(base);
-            cx.cleanup(()->remover.accept(base));
-        });
-    }
-    private static<T> void insertStream(Supplier<Stream<T>> element, Consumer<T> adder, Consumer<T> remover) {
-        insertIter(()->element.get().toList(), adder, remover);
-    }
-    private static<T> void insertIter(Supplier<Iterable<T>> element, Consumer<T> adder, Consumer<T> remover) {
-        cx.createEffect(()->element.get().forEach(t->insert(()->t, adder, remover)));
-    }
-    private static<T,E> void insertIter(Supplier<Iterable<T>> element,Function<T,E> mapper, Consumer<E> adder, Consumer<E> remover) {
-        cx.createEffect(()->element.get().forEach(t->insert(()->t,mapper, adder, remover)));
-    }
-    private static<T,E> void insertIter(ListSignal<T> elements,Function<Signal<T>,E> mapper, Consumer<E> adder, Consumer<E> remover) {
-        cx.createEffect(()-> {
-            for (int i = 0; i < elements.size(); i++) {
-                var elem = elements.getSignal(i);
-                insert(() -> mapper.apply(elem), adder, remover);
             }
         });
     }
