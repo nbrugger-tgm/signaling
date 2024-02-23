@@ -1,6 +1,7 @@
 package eu.nitonfx.signaling;
 
 import eu.nitonfx.signaling.api.Context;
+import eu.nitonfx.signaling.api.ListSignal;
 import eu.nitonfx.signaling.api.Signal;
 
 import java.util.ArrayList;
@@ -20,7 +21,8 @@ public class SetStackContext implements Context {
     public <T> Signal<T> createSignal(T initial) {
         return new DequeueSignal<>((subscribable) -> {
             if (!recording)
-                throw new IllegalStateException("Signal was read outside of an effect!");
+                return;
+//                throw new IllegalStateException("Signal was read outside of an effect!");
             dependencies.add(subscribable);
         }, (observers) -> {
             if (recording)
@@ -29,6 +31,16 @@ public class SetStackContext implements Context {
                 runnable.run();
             }
         }, initial);
+    }
+
+    @Override
+    public <T> ListSignal<T> createSignal(List<T> initial) {
+        return new ArraySignalList<>(this, initial);
+    }
+
+    @Override
+    public <T> ListSignal<T> createSignal(T[] initial) {
+        return new ArraySignalList<>(this, List.of(initial));
     }
 
     @Override
