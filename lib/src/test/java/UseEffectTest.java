@@ -335,4 +335,14 @@ public class UseEffectTest {
         inOrder.verify(cleanup).accept(5);
         inOrder.verify(effect).accept(5);
     }
+
+    @Test
+    void innerSignalDoesntTriggerOuterEffect(){
+        var cx = Context.create();
+        cx.createEffect(() -> {
+            var count = cx.createSignal(0);
+            count.set(5);
+            System.out.println(count.get());
+        });
+    }
 }

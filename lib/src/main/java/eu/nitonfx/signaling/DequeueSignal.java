@@ -15,7 +15,7 @@ public class DequeueSignal<T> implements Subscribable, Signal<T> {
     private final Consumer<Supplier<Set<Runnable>>> writeCallback;
     private T value;
 
-    DequeueSignal(Consumer<Subscribable> readCallback, Consumer<Supplier<Set<Runnable>>> writeCallback, T value) {
+    public DequeueSignal(Consumer<Subscribable> readCallback, Consumer<Supplier<Set<Runnable>>> writeCallback, T value) {
         this.readCallback = readCallback;
         this.writeCallback = writeCallback;
         this.value = value;

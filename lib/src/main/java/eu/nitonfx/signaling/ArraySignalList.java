@@ -51,4 +51,20 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     public Signal<T> getSignal(int index) {
         return list.get(index);
     }
+
+    @Override
+    public void set(List<T> i) {
+        clear();
+        addAll(i);
+    }
+
+    @Override
+    public List<T> get() {
+        return this;
+    }
+
+    @Override
+    public List<T> getUntracked() {
+        return this;
+    }
 }
