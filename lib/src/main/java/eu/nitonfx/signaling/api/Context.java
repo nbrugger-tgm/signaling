@@ -17,6 +17,7 @@ public interface Context {
     }
 
     <T> Signal<T> createSignal(T initial);
+    <T> Signal<T> createNullSignal();
 
     <T> ListSignal<T> createSignal(List<T> initial);
     <T> ListSignal<T> createSignal(T[] initial);
@@ -29,4 +30,6 @@ public interface Context {
     void createEffect(Runnable effect);
 
     void cleanup(Runnable o);
+
+    void untracked(Runnable effect);
 }

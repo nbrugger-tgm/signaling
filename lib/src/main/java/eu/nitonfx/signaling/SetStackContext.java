@@ -21,6 +21,10 @@ public class SetStackContext implements Context {
      */
     @Override
     public <T> Signal<T> createSignal(T initial) {
+        return createObjectSignal(initial);
+    }
+
+    private <T> Signal<T> createObjectSignal(T initial) {
         T container = switch (initial) {
             case null -> null;
             case List<?> list -> (T) createSignal(list);
@@ -31,7 +35,6 @@ public class SetStackContext implements Context {
         return new DequeueSignal<>((subscribable) -> {
             if (recording == null)
                 return;
-//                throw new IllegalStateException("Signal was read outside of an effect!");
             if(recording == creationEffect)
                 return;
             dependencies.add(subscribable);
@@ -45,13 +48,18 @@ public class SetStackContext implements Context {
     }
 
     @Override
+    public <T> Signal<@Nullable T> createNullSignal() {
+        return createObjectSignal(null);
+    }
+
+    @Override
     public <T> ListSignal<T> createSignal(List<T> initial) {
         return new ArraySignalList<>(this, initial);
     }
 
     @Override
     public <T> ListSignal<T> createSignal(T[] initial) {
-        return new ArraySignalList<>(this, List.of(initial));
+        return new ArraySignalList<>(this, Arrays.stream(initial).toList());
     }
 
     @Override
@@ -74,20 +82,40 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public void createEffect(Runnable effect) {
+    public synchronized void createEffect(Runnable effect) {
         var effectWrapper = new Effect(effect, this::runAndCapture);
         if (recording != null) nestedEffects.add(effectWrapper);
         else effectWrapper.run();
     }
 
     @Override
-    public void cleanup(Runnable func) {
+    public synchronized void cleanup(Runnable func) {
         if (recording  == null)
             throw new IllegalStateException("Cleanup was called outside of an effect!");
         cleanup.add(func);
     }
 
-    private EffectCapture runAndCapture(Runnable effect) {
+    @Override
+    public synchronized void untracked(Runnable effect) {
+        var disabledRecording = recording;
+        var disabledDependencies = new HashSet<>(dependencies);
+        var disabledNestedEffects = new ArrayList<>(nestedEffects);
+        var disabledDeferredSignalUpdates = new ArrayList<>(deferredSignalUpdate);
+        var disabledClanups = new HashSet<>(cleanup);
+        recording = null;
+        effect.run();
+        recording = disabledRecording;
+        dependencies.clear();
+        nestedEffects.clear();
+        deferredSignalUpdate.clear();
+        cleanup.clear();
+        dependencies.addAll(disabledDependencies);
+        nestedEffects.addAll(disabledNestedEffects);
+        deferredSignalUpdate.addAll(disabledDeferredSignalUpdates);
+        cleanup.addAll(disabledClanups);
+    }
+
+    private synchronized EffectCapture runAndCapture(Runnable effect) {
         dependencies.clear();
         nestedEffects.clear();
         deferredSignalUpdate.clear();

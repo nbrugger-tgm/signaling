@@ -3,10 +3,13 @@ package eu.nitonfx.signaling;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.ListSignal;
 import eu.nitonfx.signaling.api.Signal;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T> {
@@ -37,10 +40,17 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     }
 
     @Override
-    public T remove(int index) {
-        final var removed = super.remove(index);
+    public boolean add(T t) {
+        final var added = list.add(cx.createSignal(t));
         size.set(list.size());
-        return removed;
+        return added;
+    }
+
+    @Override
+    public T remove(int index) {
+        final var removed = list.remove(index);
+        size.set(list.size());
+        return removed.get();
     }
     @Override
     public int size() {
@@ -56,6 +66,42 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     public void set(List<T> i) {
         clear();
         addAll(i);
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends T> c) {
+        var res = list.addAll(((Collection<T>)c).stream().map(cx::createSignal).toList());
+        size.set(list.size());
+        return res;
+    }
+
+    @Override
+    public boolean removeAll(@NotNull Collection<?> c) {
+        var res = list.removeIf(signal -> c.contains(signal.get()));
+        size.set(list.size());
+        return res;
+    }
+
+    @Override
+    public boolean removeIf(Predicate<? super T> filter) {
+        var res = list.removeIf(signal -> filter.test(signal.get()));
+        size.set(list.size());
+        return res;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        var res = list.removeIf(signal -> signal.get().equals(o));
+        size.set(list.size());
+        return res;
+    }
+
+    @Override
+    public T set(int index, T element) {
+        var signal = getSignal(index);
+        var old = signal.getUntracked();
+        getSignal(index).set(element);
+        return old;
     }
 
     @Override

@@ -316,7 +316,7 @@ public class UseEffectTest {
             count3.set(rootCount.get());
         });
         rootCount.set(5);
-        assertThat(list).containsExactly(2,3,4,1,5);
+        assertThat(list).containsExactly(1,2,3,5,4);
     }
 
     @Test
@@ -330,10 +330,32 @@ public class UseEffectTest {
             cx.cleanup(()->cleanup.accept(count.getUntracked()));
         });
         count.set(5);
+        count.set(6);
         InOrder inOrder = inOrder(cleanup, effect);
         inOrder.verify(effect).accept(0);
         inOrder.verify(cleanup).accept(5);
         inOrder.verify(effect).accept(5);
+        inOrder.verify(cleanup).accept(6);
+        inOrder.verify(effect).accept(6);
+    }
+
+    @Test
+    void cleanupRunsOnParentExecution(){
+        var cx = Context.create();
+        var count = cx.createSignal(0);
+        Consumer<Integer> cleanup = mock();
+        Consumer<Integer> effect = mock();
+        cx.createEffect(()->{
+            effect.accept(count.get());
+            cx.createEffect(()->{
+                cx.cleanup(()->cleanup.accept(count.getUntracked()));
+            });
+        });
+        count.set(3);
+        InOrder inOrder = inOrder(cleanup, effect);
+        inOrder.verify(effect).accept(0);//parent
+        inOrder.verify(cleanup).accept(3);
+        inOrder.verify(effect).accept(3);
     }
 
     @Test

@@ -14,11 +14,13 @@ public class DequeueSignal<T> implements Subscribable, Signal<T> {
     private final Set<Runnable> observers = new HashSet<>();
     private final Consumer<Supplier<Set<Runnable>>> writeCallback;
     private T value;
+    private final StackTraceElement trace;
 
     public DequeueSignal(Consumer<Subscribable> readCallback, Consumer<Supplier<Set<Runnable>>> writeCallback, T value) {
         this.readCallback = readCallback;
         this.writeCallback = writeCallback;
         this.value = value;
+        trace = Thread.currentThread().getStackTrace()[3];
     }
 
     public Subscription subscribe(Runnable observer) {
@@ -28,7 +30,7 @@ public class DequeueSignal<T> implements Subscribable, Signal<T> {
 
     @Override
     public void set(T i) {
-        if(i == value) return;
+        if(Objects.equals(i, value)) return;
         value = i;
         writeCallback.accept(()->copyOf(observers));
     }
