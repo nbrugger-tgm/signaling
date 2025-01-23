@@ -27,7 +27,7 @@ public class UseEffectTest {
         Consumer<Integer> consumer = mock();
         var cx = Context.create();
         var count = cx.createSignal(0);
-        var doubleCount = count.derive(i -> i * 2);
+        var doubleCount = cx.createMemo(() -> count.get() * 2);
         cx.createEffect(() -> {
             consumer.accept(count.get() * count.get());
             cx.createEffect(() -> consumer.accept(doubleCount.get()));
@@ -51,7 +51,7 @@ public class UseEffectTest {
         Consumer<Integer> consumer = mock();
         var cx = Context.create();
         var count = cx.createSignal(0);
-        var doubleCount = count.derive(i -> i * 2);
+        var doubleCount = cx.createMemo(() -> count.get() * 2);
         cx.createEffect(() -> {
             cx.createEffect(() -> consumer.accept(doubleCount.get()));
             cx.createEffect(() -> consumer.accept(count.get()));

@@ -1,9 +1,11 @@
 package eu.nitonfx.signaling;
 
+import eu.nitonfx.signaling.api.SignalLike;
+import eu.nitonfx.signaling.api.Subscription;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -11,8 +13,9 @@ public class Effect implements Runnable {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
+    private Set<Dependency> dependencies = Set.of();
     private List<Effect> nestedEffects = List.of();
-    private Predicate<Subscribable> dependencyFilter = (e) -> true;
+    private Predicate<SignalLike<?>> dependencyFilter = (e) -> true;
     private Set<Runnable> cleanup = new HashSet<>();
     private final StackTraceElement trace;
 
@@ -33,7 +36,10 @@ public class Effect implements Runnable {
         var capture = capturingExecutor.apply(effect);
         cleanup = capture.cleanup();
         var dependencies = capture.dependencies().stream().filter(dependencyFilter).collect(Collectors.toSet());
-        subscriptions = dependencies.stream().map(subscribable -> subscribable.subscribe(this)).collect(Collectors.toSet());
+        subscriptions = Stream.concat(
+                dependencies.stream().map(subscribable -> subscribable.onChange((__)->run())),
+                dependencies.stream().map(subscribable -> subscribable.onDirty((__)->runIfDependenciesChanged()))
+        ).collect(Collectors.toSet());
         var nestedEffects = capture.nestedEffects();
         final var filterForNestedEffects = dependencyFilter.and(not(dep -> dependencies.stream().anyMatch(inner -> inner == dep)));
         nestedEffects.forEach(nested -> nested.dependencyFilter = filterForNestedEffects);
@@ -42,6 +48,14 @@ public class Effect implements Runnable {
         //This is the deffered execution of this effects
         Stream.concat(nestedEffects.stream(),capture.flatDeferredEffects()).forEach(Runnable::run);
         this.nestedEffects = nestedEffects;
+    }
+
+    private void runIfDependenciesChanged(){
+        if(dependencies.isEmpty() || areDependenciesChanged()) run();
+    }
+
+    private boolean areDependenciesChanged() {
+        return !dependencies.stream().allMatch(it -> Objects.equals(it.lastValue, it.sig.getUntracked()));
     }
 
     //Predicate.not() is not available in TeaVM
@@ -63,4 +77,9 @@ public class Effect implements Runnable {
         cleanup.forEach(Runnable::run);
         cleanup = Collections.emptySet();
     }
+
+    private record Dependency(
+            SignalLike<?> sig,
+            Object lastValue
+    ) { }
 }

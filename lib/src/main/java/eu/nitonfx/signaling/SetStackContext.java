@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class SetStackContext implements Context {
-    private final Set<Subscribable> dependencies = new HashSet<>();
+    private final Set<SignalLike<?>> dependencies = new HashSet<>();
     private final List<Effect> nestedEffects = new ArrayList<>(3);
     private final List<Supplier<Set<Runnable>>> deferredSignalUpdate = new ArrayList<>(8);
     private final Set<Runnable> cleanup = new HashSet<>();
@@ -29,22 +29,32 @@ public class SetStackContext implements Context {
             case null -> null;
             case List<?> list -> (T) createSignal(list);
             case Set<?> set -> (T) new HashSetSignal<>(this, set);
-            default  -> initial;
+            default -> initial;
         };
         var creationEffect = recording;
-        return new DequeueSignal<>((subscribable) -> {
-            if (recording == null)
-                return;
-            if(recording == creationEffect)
-                return;
-            dependencies.add(subscribable);
-        }, (observers) -> {
-            if (recording != null)
-                deferredSignalUpdate.add(observers);
-            else for (Runnable runnable : observers.get()) {
-                runnable.run();
-            }
-        }, container);
+        return new MutableSignal<>(
+                (subscribable) -> onSignalRead(subscribable, creationEffect),
+                this::onSignalWrite,
+                container
+        );
+    }
+
+    private void onSignalWrite(Supplier<Set<Runnable>> observers) {
+        if (recording != null) deferredSignalUpdate.add(observers);
+        else for (Runnable runnable : observers.get()) {
+            runnable.run();
+        }
+    }
+
+    /**
+     * @param creationEffect the effect that the signal was created in
+     */
+    private <T> void onSignalRead(SignalLike<T> subscribable, Runnable creationEffect) {
+        if (recording == null)
+            return;
+        if (recording == creationEffect)
+            return;
+        dependencies.add(subscribable);
     }
 
     @Override
@@ -54,12 +64,12 @@ public class SetStackContext implements Context {
 
     @Override
     public <T> ListSignal<T> createSignal(List<T> initial) {
-        return new ArraySignalList<>(this, initial);
+        return new ArraySignalList<>(this, initial, getParentStackElement());
     }
 
     @Override
     public <T> ListSignal<T> createSignal(T[] initial) {
-        return new ArraySignalList<>(this, Arrays.stream(initial).toList());
+        return new ArraySignalList<>(this, Arrays.stream(initial).toList(), getParentStackElement());
     }
 
     @Override
@@ -69,16 +79,16 @@ public class SetStackContext implements Context {
 
     @Override
     public <K, V> MapSignal<K, V> createSignal(Map<K, V> initial) {
-        return new SetMapSignal<>(this, initial);
+        return new SetMapSignal<>(this, initial, getParentStackElement());
     }
 
     @Override
     public <T> Supplier<T> createMemo(@NotNull Supplier<T> function) {
-        return new MemoSignal<>(this, function, null);
+        return new DerivedSignal<>(getParentStackElement(), function, (signal) -> this.onSignalRead(signal, recording), this::runAndCapture, this::onSignalWrite, this::onSignalWrite);
     }
-    @Override
-    public <T> Supplier<T> createMemo(T init, @NotNull Supplier<T> function) {
-        return new MemoSignal<>(this, function, init);
+
+    private StackTraceElement getParentStackElement() {
+        return Thread.currentThread().getStackTrace()[2];
     }
 
     @Override
@@ -90,7 +100,7 @@ public class SetStackContext implements Context {
 
     @Override
     public synchronized void cleanup(Runnable func) {
-        if (recording  == null)
+        if (recording == null)
             throw new IllegalStateException("Cleanup was called outside of an effect!");
         cleanup.add(func);
     }

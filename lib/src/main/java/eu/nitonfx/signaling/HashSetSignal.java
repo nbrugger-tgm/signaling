@@ -3,11 +3,14 @@ package eu.nitonfx.signaling;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.SetSignal;
 import eu.nitonfx.signaling.api.Signal;
+import eu.nitonfx.signaling.api.SignalLike;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.AbstractSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
     private final Set<Signal<E>> set = new HashSet<>();
@@ -76,18 +79,8 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
     }
 
     @Override
-    public void set(Set<E> i) {
-        clear();
-        addAll(i);
-    }
-
-    @Override
-    public Set<E> get() {
-        return this;
-    }
-
-    @Override
+    @Unmodifiable
     public Set<E> getUntracked() {
-        return this;
+        return set.stream().map(SignalLike::getUntracked).collect(Collectors.toSet());
     }
 }

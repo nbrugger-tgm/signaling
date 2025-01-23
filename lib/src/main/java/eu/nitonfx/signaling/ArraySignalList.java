@@ -1,14 +1,13 @@
 package eu.nitonfx.signaling;
 
-import eu.nitonfx.signaling.api.Context;
-import eu.nitonfx.signaling.api.ListSignal;
-import eu.nitonfx.signaling.api.Signal;
+import eu.nitonfx.signaling.api.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -16,14 +15,17 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     private final List<Signal<T>> list;
     private final Context cx;
     private final Signal<Integer> size;
+    private final StackTraceElement origin;
 
-    public ArraySignalList(Context cx) {
+    public ArraySignalList(Context cx, StackTraceElement origin) {
         this.cx = cx;
         size = cx.createSignal(0);
+        this.origin = origin;
         list = new ArrayList<>();
     }
-    public ArraySignalList(Context cx, List<T> initial) {
+    public ArraySignalList(Context cx, List<T> initial, StackTraceElement origin) {
         this.cx = cx;
+        this.origin = origin;
         this.list = initial.stream().map(cx::createSignal).collect(Collectors.toCollection(ArrayList::new));
         size = cx.createSignal(initial.size());
     }
@@ -63,12 +65,6 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     }
 
     @Override
-    public void set(List<T> i) {
-        clear();
-        addAll(i);
-    }
-
-    @Override
     public boolean addAll(@NotNull Collection<? extends T> c) {
         var res = list.addAll(((Collection<T>)c).stream().map(cx::createSignal).toList());
         size.set(list.size());
@@ -105,12 +101,11 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     }
 
     @Override
-    public List<T> get() {
-        return this;
+    public List<T> getUntracked() {
+        return list.stream().map(Signal::getUntracked).collect(Collectors.toList());
     }
 
-    @Override
-    public List<T> getUntracked() {
-        return this;
+    public StackTraceElement getOrigin() {
+        return origin;
     }
 }

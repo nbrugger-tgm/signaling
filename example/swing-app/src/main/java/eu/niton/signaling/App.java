@@ -3,13 +3,11 @@ package eu.niton.signaling;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.ListSignal;
 import eu.nitonfx.signaling.api.Signal;
+import eu.nitonfx.signaling.api.SignalLike;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class App {
     private static final Context cx = Context.create();
@@ -83,7 +81,7 @@ public class App {
             cx.cleanup(()->parent.remove(base));
         });
     }
-    private static<T,E extends JComponent> void insert(ListSignal<T> elements,Function<Signal<T>,E> mapper, JComponent parent) {
+    private static<T,E extends JComponent> void insert(ListSignal<T> elements, Function<SignalLike<T>,E> mapper, JComponent parent) {
         cx.createEffect(()-> {
             for (int i = 0; i < elements.size(); i++) {
                 var elem = elements.getSignal(i);

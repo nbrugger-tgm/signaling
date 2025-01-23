@@ -2,6 +2,7 @@ package eu.nitonfx.signaling.api;
 
 import java.util.Map;
 
-public interface MapSignal<K, V> extends Map<K,V>, Signal<Map<K,V>> {
-    Signal<V> getSignal(K key);
+public interface MapSignal<K, V> extends Map<K,V> {
+    SignalLike<V> getSignal(K key);
+    Map<K,V> getUntracked();
 }

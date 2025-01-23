@@ -3,7 +3,6 @@ package eu.nitonfx.signaling.api;
 import eu.nitonfx.signaling.SetStackContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +24,6 @@ public interface Context {
     <K,V> MapSignal<K,V> createSignal(Map<K,V> initial);
 
     <T> Supplier<T> createMemo(@NotNull Supplier<T> function);
-    <T> Supplier<T> createMemo(T initial, @NotNull Supplier<T> function);
 
     void createEffect(Runnable effect);
 
