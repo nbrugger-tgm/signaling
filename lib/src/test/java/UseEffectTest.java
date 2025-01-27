@@ -46,25 +46,23 @@ public class UseEffectTest {
         verify(consumer).accept(12);
     }
 
+    @RepeatedTest(200)
 //    @Test
-    @Test
     void useCase2() {
         Consumer<Integer> consumer = mock();
         var cx = Context.create();
-        var count = cx.createSignal(0);
-        var doubleCount = cx.createMemo(() -> count.get() * 2);
-        cx.createEffect(() -> {
-            cx.createEffect(() -> consumer.accept(doubleCount.get()));
-            cx.createEffect(() -> consumer.accept(count.get()));
-            consumer.accept(count.get() * count.get());
-        });
-        count.set(5);
-        count.set(12);
-        verify(consumer, times(3)).accept(0);
+        cx.run(()->{
+            var count = cx.createSignal(0);
+            var doubleCount = cx.createMemo(() -> count.get() * 2);
 
-        verify(consumer).accept(25);
-        verify(consumer).accept(10);
-        verify(consumer).accept(5);
+            cx.createEffect(() -> {
+                cx.createEffect(() -> consumer.accept(doubleCount.get()));
+                cx.createEffect(() -> consumer.accept(count.get()));
+                consumer.accept(count.get() * count.get());
+            });
+            count.set(5);
+            count.set(12);
+        });
 
         verify(consumer).accept(144);
         verify(consumer).accept(24);

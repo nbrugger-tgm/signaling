@@ -27,14 +27,12 @@ public class DerivedSignal<T> implements SignalLike<T> {
     private T cache;
 
     public DerivedSignal(
-            T init,
             StackTraceElement origin,
             Supplier<T> function,
             Consumer<SignalLike<T>> onReadListener,
             Function<Runnable, EffectCapture> captureFunction,
             Consumer<Supplier<Set<Runnable>>> changeCallback
     ) {
-        this.cache = init;
         this.function = function;
         this.onReadListener = onReadListener;
         this.captureFunction = captureFunction;
