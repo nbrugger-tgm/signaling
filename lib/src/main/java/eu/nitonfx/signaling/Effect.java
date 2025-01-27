@@ -35,23 +35,23 @@ public class Effect implements Runnable {
         unsubscribe();
         var capture = capturingExecutor.apply(effect);
         cleanup = capture.cleanup();
-        var dependencies = capture.dependencies().stream().filter(dependencyFilter).collect(Collectors.toSet());
-        subscriptions = Stream.concat(
-                dependencies.stream().map(subscribable -> subscribable.onChange((__)->run())),
-                dependencies.stream().map(subscribable -> subscribable.onDirty((__)->runIfDependenciesChanged()))
-        ).collect(Collectors.toSet());
+        var dependencySignals = capture.dependencies().stream().filter(dependencyFilter).collect(Collectors.toSet());
+        this.dependencies = dependencySignals.stream().map(Dependency::new).collect(Collectors.toSet());
+        subscriptions = dependencies.stream()
+                .map(dependency -> dependency.sig.onDirtyEffect((__)->runIfDependencyChanged(dependency)))
+                .collect(Collectors.toSet());
         var nestedEffects = capture.nestedEffects();
-        final var filterForNestedEffects = dependencyFilter.and(not(dep -> dependencies.stream().anyMatch(inner -> inner == dep)));
+        final var filterForNestedEffects = dependencyFilter.and(not(dep -> dependencySignals.stream().anyMatch(inner -> inner == dep)));
         nestedEffects.forEach(nested -> nested.dependencyFilter = filterForNestedEffects);
 
         //If the effect caused writes to signals, the effects attached to this signals are not run immediately, but deferred to the end of the current effect
-        //This is the deffered execution of this effects
+        //This is the deferred execution of this effects
         Stream.concat(nestedEffects.stream(),capture.flatDeferredEffects()).forEach(Runnable::run);
         this.nestedEffects = nestedEffects;
     }
 
-    private void runIfDependenciesChanged(){
-        if(dependencies.isEmpty() || areDependenciesChanged()) run();
+    private void runIfDependencyChanged(Dependency dependency) {
+        if(dependency.isChanged()) run();
     }
 
     private boolean areDependenciesChanged() {
@@ -81,5 +81,13 @@ public class Effect implements Runnable {
     private record Dependency(
             SignalLike<?> sig,
             Object lastValue
-    ) { }
+    ) {
+        Dependency(SignalLike<?> sig) {
+            this(sig, sig.getUntracked());
+        }
+
+        public boolean isChanged() {
+            return !Objects.equals(sig.getUntracked(), lastValue);
+        }
+    }
 }

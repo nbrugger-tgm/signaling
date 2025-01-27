@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
  */
 class MutableSignal<T> implements Signal<T> {
     private final Consumer<SignalLike<T>> readCallback;
-    private final Set<Consumer<T>> observers = new HashSet<>();
+    private final List<Consumer<SignalLike<T>>> effects = new LinkedList<>();
+    private final List<Consumer<SignalLike<T>>> instantObservers = new LinkedList<>();
     private final Consumer<Supplier<Set<Runnable>>> writeCallback;
     private final StackTraceElement trace;
     private T value;
@@ -37,7 +38,11 @@ class MutableSignal<T> implements Signal<T> {
     public void set(T i) {
         if (Objects.equals(i, value)) return;
         value = i;
-        writeCallback.accept(()-> observers.stream().map(it -> (Runnable) () -> it.accept(i)).collect(Collectors.toSet()));
+        instantObservers.forEach(observer -> observer.accept(this));
+        writeCallback.accept(() -> effects.stream()
+                .map(it -> (Runnable) () -> it.accept(this))
+                .collect(Collectors.toSet())
+        );
     }
 
     @Override
@@ -57,14 +62,14 @@ class MutableSignal<T> implements Signal<T> {
     }
 
     @Override
-    public Subscription onChange(Consumer<T> consumer) {
-        this.observers.add(consumer);
-        return () -> observers.remove(consumer);
+    public Subscription onDirtyEffect(Consumer<SignalLike<T>> consumer) {
+        this.effects.add(consumer);
+        return () -> effects.remove(consumer);
     }
 
     @Override
-    public Subscription onDirty(Consumer<SignalLike<T>> consumer) {
-        return () -> {
-        };
+    public Subscription propagateDirty(Consumer<SignalLike<T>> consumer) {
+        this.instantObservers.add(consumer);
+        return () -> instantObservers.remove(consumer);
     }
 }

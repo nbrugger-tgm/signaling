@@ -23,7 +23,13 @@ public interface Context {
     <T> SetSignal<T> createSignal(Set<T> initial);
     <K,V> MapSignal<K,V> createSignal(Map<K,V> initial);
 
-    <T> Supplier<T> createMemo(@NotNull Supplier<T> function);
+    default <T> Supplier<T> createMemo(@NotNull Supplier<T> function) {
+        return createMemo(untracked(function), function);
+    }
+
+    <T> Supplier<T> createMemo(T initial, @NotNull Supplier<T> function);
+
+    <T> T untracked(@NotNull Supplier<T> function);
 
     void createEffect(Runnable effect);
 

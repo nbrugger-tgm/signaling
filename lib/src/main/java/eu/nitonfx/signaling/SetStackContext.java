@@ -83,8 +83,70 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public <T> Supplier<T> createMemo(@NotNull Supplier<T> function) {
-        return new DerivedSignal<>(getParentStackElement(), function, (signal) -> this.onSignalRead(signal, recording), this::runAndCapture, this::onSignalWrite, this::onSignalWrite);
+    public <T> Supplier<T> createMemo(T initial, @NotNull Supplier<T> function) {
+        var creationEffect = recording;
+        return new DerivedSignal<>(
+                initial,
+                getParentStackElement(),
+                function,
+                (signal) -> this.onSignalRead(signal, creationEffect),
+                this::runAndCaptureInIsolation,
+                this::onSignalWrite
+        );
+    }
+
+    private EffectCapture runAndCaptureInIsolation(Runnable runnable) {
+        var disabledRecording = recording;
+        var disabledDependencies = new HashSet<>(dependencies);
+        var disabledNestedEffects = new ArrayList<>(nestedEffects);
+        var disabledDeferredSignalUpdates = new ArrayList<>(deferredSignalUpdate);
+        var disabledClanups = new HashSet<>(cleanup);
+
+        dependencies.clear();
+        nestedEffects.clear();
+        deferredSignalUpdate.clear();
+        cleanup.clear();
+
+        recording = runnable;
+        runnable.run();
+        recording = disabledRecording;
+        var isolatedRecording = new EffectCapture(
+                Set.copyOf(dependencies),
+                List.copyOf(nestedEffects),
+                List.copyOf(deferredSignalUpdate),
+                Set.copyOf(cleanup)
+        );
+
+        dependencies.clear();
+        nestedEffects.clear();
+        deferredSignalUpdate.clear();
+        cleanup.clear();
+        dependencies.addAll(disabledDependencies);
+        nestedEffects.addAll(disabledNestedEffects);
+        deferredSignalUpdate.addAll(disabledDeferredSignalUpdates);
+        cleanup.addAll(disabledClanups);
+        return isolatedRecording;
+    }
+
+    @Override
+    public <T> T untracked(@NotNull Supplier<T> function) {
+        var disabledRecording = recording;
+        var disabledDependencies = new HashSet<>(dependencies);
+        var disabledNestedEffects = new ArrayList<>(nestedEffects);
+        var disabledDeferredSignalUpdates = new ArrayList<>(deferredSignalUpdate);
+        var disabledClanups = new HashSet<>(cleanup);
+        recording = null;
+        T val = function.get();
+        recording = disabledRecording;
+        dependencies.clear();
+        nestedEffects.clear();
+        deferredSignalUpdate.clear();
+        cleanup.clear();
+        dependencies.addAll(disabledDependencies);
+        nestedEffects.addAll(disabledNestedEffects);
+        deferredSignalUpdate.addAll(disabledDeferredSignalUpdates);
+        cleanup.addAll(disabledClanups);
+        return val;
     }
 
     private StackTraceElement getParentStackElement() {
@@ -107,22 +169,10 @@ public class SetStackContext implements Context {
 
     @Override
     public synchronized void untracked(Runnable effect) {
-        var disabledRecording = recording;
-        var disabledDependencies = new HashSet<>(dependencies);
-        var disabledNestedEffects = new ArrayList<>(nestedEffects);
-        var disabledDeferredSignalUpdates = new ArrayList<>(deferredSignalUpdate);
-        var disabledClanups = new HashSet<>(cleanup);
-        recording = null;
-        effect.run();
-        recording = disabledRecording;
-        dependencies.clear();
-        nestedEffects.clear();
-        deferredSignalUpdate.clear();
-        cleanup.clear();
-        dependencies.addAll(disabledDependencies);
-        nestedEffects.addAll(disabledNestedEffects);
-        deferredSignalUpdate.addAll(disabledDeferredSignalUpdates);
-        cleanup.addAll(disabledClanups);
+       untracked(() -> {
+           effect.run();
+           return null;
+       });
     }
 
     private synchronized EffectCapture runAndCapture(Runnable effect) {

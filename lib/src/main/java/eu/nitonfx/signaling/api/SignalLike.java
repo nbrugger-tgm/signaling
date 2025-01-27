@@ -1,7 +1,6 @@
 package eu.nitonfx.signaling.api;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -14,15 +13,21 @@ public interface SignalLike<T> extends Supplier<T> {
     StackTraceElement getOrigin();
 
     /**
-     * @param consumer listener called when the signal was recomputed and has a new changed value, this call doesn't need to trigger a {@link #onDirty(Consumer)}
+     * Listen to this signal getting dirty, allowing dependency tracking, delayed execution;
+     * this is the preferred mode of listening.
+     * {@link #propagateDirty(Consumer)} is an escape hatch to act on dirty immediately without dependency tracking support.
+     *
+     * @param consumer a listener which is called when the signal might need to be read again because the value might have changed,
      * @return an object that can be used to cancel the subscription
      */
-    Subscription onChange(Consumer<T> consumer);
+    Subscription onDirtyEffect(Consumer<SignalLike<T>> consumer);
 
     /**
-     * @param consumer listener that is called when the signal might need to be read again because the value might have changed,
-     *                 it is NOT necessary that this is called when {@link #onChange(Consumer)} trigger/ed/s
+     * Listen to the signal getting dirty in real time without delays.
+     * This means that delayed execution dependency tracking and deferred execution do not work,
+     * using any {@link Context} methods in the callback/listener will cause issues and undefined behavior.
+     * @param consumer a method being called when the signal needs to be read again to make sure its value (didn't) changed.
      * @return an object that can be used to cancel the subscription
      */
-    Subscription onDirty(Consumer<SignalLike<T>> consumer);
+    Subscription propagateDirty(Consumer<SignalLike<T>> consumer);
 }
