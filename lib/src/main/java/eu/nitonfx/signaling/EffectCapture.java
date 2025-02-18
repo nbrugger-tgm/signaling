@@ -1,12 +1,14 @@
 package eu.nitonfx.signaling;
 
+import eu.nitonfx.signaling.api.SignalLike;
+
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public record EffectCapture(
-        Set<? extends Subscribable> dependencies,
+        Set<Dependency<?>> dependencies,
         List<Effect> nestedEffects,
         List<Supplier<Set<Runnable>>> deferredEffects,
         Set<Runnable> cleanup) {

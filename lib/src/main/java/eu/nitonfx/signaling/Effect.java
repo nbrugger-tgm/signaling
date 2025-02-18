@@ -1,22 +1,33 @@
 package eu.nitonfx.signaling;
 
+import eu.nitonfx.signaling.api.SignalLike;
+import eu.nitonfx.signaling.api.Subscription;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Effect implements Runnable {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
+    private Set<Dependency<?>> dependencies = Set.of();
     private List<Effect> nestedEffects = List.of();
-    private Predicate<Subscribable> dependencyFilter = (e) -> true;
+    private Predicate<SignalLike<?>> dependencyFilter = (e) -> true;
     private Set<Runnable> cleanup = new HashSet<>();
+    private final StackTraceElement trace;
+
+    @Override
+    public String toString() {
+        return trace.toString();
+    }
 
     public Effect(Runnable effect, Function<Runnable, EffectCapture> capturingExecutor) {
         this.effect = effect;
         this.capturingExecutor = capturingExecutor;
+        this.trace = Thread.currentThread().getStackTrace()[3];
     }
 
     @Override
@@ -24,44 +35,26 @@ public class Effect implements Runnable {
         unsubscribe();
         var capture = capturingExecutor.apply(effect);
         cleanup = capture.cleanup();
-        var dependencies = capture.dependencies().stream().filter(dependencyFilter).collect(Collectors.toSet());
-        subscriptions = dependencies.stream().map(subscribable -> subscribable.subscribe(this)).collect(Collectors.toSet());
-        var allNestedEffects = new ArrayList<>(capture.nestedEffects());
-        allNestedEffects.forEach(nested -> nested.dependencyFilter = dependencyFilter.and(not(dep -> dependencies.stream().anyMatch(inner -> inner == dep))));
+        this.dependencies = capture.dependencies().stream()
+                .filter(dep -> dependencyFilter.test(dep.signal()))
+                .collect(Collectors.toSet());
+        var dependencySignals = dependencies.stream().map(Dependency::signal).toList();
+        subscriptions = dependencies.stream()
+                .map(dependency -> dependency.signal().onDirtyEffect((__)->runIfDependencyChanged(dependency)))
+                .collect(Collectors.toSet());
+        var nestedEffects = capture.nestedEffects();
+        final var filterForNestedEffects = dependencyFilter.and(Predicate.not(dep -> dependencySignals.stream().anyMatch(inner -> inner == dep)));
+        nestedEffects.forEach(nested -> nested.dependencyFilter = filterForNestedEffects);
 
         //If the effect caused writes to signals, the effects attached to this signals are not run immediately, but deferred to the end of the current effect
-        //This is the deffered execution of this effects
-        Queue<Runnable> deferred = capture.flatDeferredEffects().collect(Collectors.toCollection(LinkedList::new));
-        while (!deferred.isEmpty()) {
-            var runnable = deferred.poll();
-            if (!(runnable instanceof Effect effect)) {
-                runnable.run();
-                continue;
-            }
-            effect.unsubscribe();
-            var innerCapture = capturingExecutor.apply(effect.effect);
-            var innerDependencies = innerCapture.dependencies().stream().filter(effect.dependencyFilter).collect(Collectors.toSet());
-            effect.subscriptions = innerDependencies.stream()
-                    .filter(effect.dependencyFilter)
-                    .map(subscribable -> subscribable.subscribe(effect))
-                    .collect(Collectors.toSet());
-            allNestedEffects.addAll(innerCapture.nestedEffects().stream().map(
-                    nested -> {
-                        nested.dependencyFilter = effect.dependencyFilter.and(not(innerDependencies::contains));
-                        return nested;
-                    }
-            ).collect(Collectors.toSet()));
-            deferred.addAll(innerCapture.flatDeferredEffects().toList());
-        }
-        allNestedEffects.forEach(Effect::run);
-        nestedEffects = allNestedEffects;
+        //This is the deferred execution of this effects
+        Stream.concat(nestedEffects.stream(),capture.flatDeferredEffects()).forEach(Runnable::run);
+        this.nestedEffects = nestedEffects;
     }
 
-    //Predicate.not() is not available in TeaVM
-    private<T> Predicate<T> not(Predicate<T> predicate) {
-        return o -> !predicate.test(o);
+    private <T> void runIfDependencyChanged(Dependency<T> dependency) {
+        if(dependency.isChanged()) run();
     }
-
 
     public void unsubscribe() {
         for (Subscription subscription : subscriptions) {
@@ -76,4 +69,5 @@ public class Effect implements Runnable {
         cleanup.forEach(Runnable::run);
         cleanup = Collections.emptySet();
     }
+
 }
