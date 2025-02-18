@@ -13,7 +13,7 @@ public class Effect implements Runnable {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
-    private Set<Dependency> dependencies = Set.of();
+    private Set<Dependency<?>> dependencies = Set.of();
     private List<Effect> nestedEffects = List.of();
     private Predicate<SignalLike<?>> dependencyFilter = (e) -> true;
     private Set<Runnable> cleanup = new HashSet<>();
@@ -35,13 +35,15 @@ public class Effect implements Runnable {
         unsubscribe();
         var capture = capturingExecutor.apply(effect);
         cleanup = capture.cleanup();
-        var dependencySignals = capture.dependencies().stream().filter(dependencyFilter).collect(Collectors.toSet());
-        this.dependencies = dependencySignals.stream().map(Dependency::new).collect(Collectors.toSet());
+        this.dependencies = capture.dependencies().stream()
+                .filter(dep -> dependencyFilter.test(dep.signal()))
+                .collect(Collectors.toSet());
+        var dependencySignals = dependencies.stream().map(Dependency::signal).toList();
         subscriptions = dependencies.stream()
-                .map(dependency -> dependency.sig.onDirtyEffect((__)->runIfDependencyChanged(dependency)))
+                .map(dependency -> dependency.signal().onDirtyEffect((__)->runIfDependencyChanged(dependency)))
                 .collect(Collectors.toSet());
         var nestedEffects = capture.nestedEffects();
-        final var filterForNestedEffects = dependencyFilter.and(not(dep -> dependencySignals.stream().anyMatch(inner -> inner == dep)));
+        final var filterForNestedEffects = dependencyFilter.and(Predicate.not(dep -> dependencySignals.stream().anyMatch(inner -> inner == dep)));
         nestedEffects.forEach(nested -> nested.dependencyFilter = filterForNestedEffects);
 
         //If the effect caused writes to signals, the effects attached to this signals are not run immediately, but deferred to the end of the current effect
@@ -50,19 +52,9 @@ public class Effect implements Runnable {
         this.nestedEffects = nestedEffects;
     }
 
-    private void runIfDependencyChanged(Dependency dependency) {
+    private <T> void runIfDependencyChanged(Dependency<T> dependency) {
         if(dependency.isChanged()) run();
     }
-
-    private boolean areDependenciesChanged() {
-        return !dependencies.stream().allMatch(it -> Objects.equals(it.lastValue, it.sig.getUntracked()));
-    }
-
-    //Predicate.not() is not available in TeaVM
-    private<T> Predicate<T> not(Predicate<T> predicate) {
-        return o -> !predicate.test(o);
-    }
-
 
     public void unsubscribe() {
         for (Subscription subscription : subscriptions) {
@@ -78,16 +70,4 @@ public class Effect implements Runnable {
         cleanup = Collections.emptySet();
     }
 
-    private record Dependency(
-            SignalLike<?> sig,
-            Object lastValue
-    ) {
-        Dependency(SignalLike<?> sig) {
-            this(sig, sig.getUntracked());
-        }
-
-        public boolean isChanged() {
-            return !Objects.equals(sig.getUntracked(), lastValue);
-        }
-    }
 }

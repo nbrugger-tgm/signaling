@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class SetStackContext implements Context {
-    private final Set<SignalLike<?>> dependencies = new HashSet<>();
+    private final Set<Dependency<?>> dependencies = new HashSet<>();
     private final List<Effect> nestedEffects = new ArrayList<>(3);
     private final List<Supplier<Set<Runnable>>> deferredSignalUpdate = new ArrayList<>(8);
     private final Set<Runnable> cleanup = new HashSet<>();
@@ -50,11 +50,14 @@ public class SetStackContext implements Context {
      * @param creationEffect the effect that the signal was created in
      */
     private <T> void onSignalRead(SignalLike<T> subscribable, Runnable creationEffect) {
-        if (recording == null)
+        if (recording == null || recording == creationEffect)
             return;
-        if (recording == creationEffect)
-            return;
-        dependencies.add(subscribable);
+        //remove outdated signal dependencies
+        //a signal can be read twice in an effect and with the value changing in between reads
+        //in such a case only the last read value counts
+        dependencies.removeIf(dep -> dep.signal() == subscribable);
+
+        dependencies.add(new Dependency<>(subscribable));
     }
 
     @Override

@@ -15,10 +15,12 @@ import java.util.stream.Collectors;
  * @param <T>
  */
 class MutableSignal<T> implements Signal<T> {
-    private final Consumer<SignalLike<T>> readCallback;
     private final List<Consumer<SignalLike<T>>> effects = new LinkedList<>();
     private final List<Consumer<SignalLike<T>>> instantObservers = new LinkedList<>();
+
     private final Consumer<Supplier<Set<Runnable>>> writeCallback;
+    private final Consumer<SignalLike<T>> readCallback;
+
     private final StackTraceElement trace;
     private T value;
 

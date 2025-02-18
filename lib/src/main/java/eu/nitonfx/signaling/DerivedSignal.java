@@ -1,6 +1,5 @@
 package eu.nitonfx.signaling;
 
-import eu.nitonfx.signaling.api.Signal;
 import eu.nitonfx.signaling.api.SignalLike;
 import eu.nitonfx.signaling.api.Subscription;
 
@@ -68,10 +67,10 @@ public class DerivedSignal<T> implements SignalLike<T> {
         dirtyDependencies.clear();
         var capture = captureFunction.apply(() -> cache = function.get());
         initialized = true;
-        subscriptions = capture.dependencies().stream().map(Dependency::new)
+        subscriptions = capture.dependencies().stream()
                 .<Subscription>mapMulti((dep, next) -> {
-                    next.accept(dep.signal.propagateDirty((__) -> markDirty(dep)));
-                    next.accept(dep.signal.onDirtyEffect((__) -> queueDependeants(dep)));
+                    next.accept(dep.signal().propagateDirty((__) -> markDirty(dep)));
+                    next.accept(dep.signal().onDirtyEffect((__) -> queueDependeants(dep)));
                 })
                 .collect(Collectors.toSet());
         if (!capture.cleanup().isEmpty())
@@ -115,18 +114,5 @@ public class DerivedSignal<T> implements SignalLike<T> {
         return "DerivedSignal { value = %s, clean = %s } %s".formatted(
                 cache, !isDirty(), origin
         );
-    }
-
-    private record Dependency<T>(
-            SignalLike<T> signal,
-            T lastValue
-    ) {
-        Dependency(SignalLike<T> signal) {
-            this(signal, signal.getUntracked());
-        }
-
-        public boolean isChanged() {
-            return !Objects.equals(lastValue, signal.getUntracked());
-        }
     }
 }

@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public record EffectCapture(
-        Set<SignalLike<?>> dependencies,
+        Set<Dependency<?>> dependencies,
         List<Effect> nestedEffects,
         List<Supplier<Set<Runnable>>> deferredEffects,
         Set<Runnable> cleanup) {

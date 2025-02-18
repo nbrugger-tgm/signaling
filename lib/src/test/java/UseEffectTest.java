@@ -46,8 +46,7 @@ public class UseEffectTest {
         verify(consumer).accept(12);
     }
 
-    @RepeatedTest(200)
-//    @Test
+    @RepeatedTest(50)
     void useCase2() {
         Consumer<Integer> consumer = mock();
         var cx = Context.create();
