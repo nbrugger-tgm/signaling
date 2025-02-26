@@ -8,8 +8,28 @@ import java.util.function.Supplier;
  * @param <T> the type of the value
  */
 public interface SignalLike<T> extends Supplier<T> {
+
+    /**
+     * Returns the current value of the signal.
+     * This method tracks dependencies and should be used within reactive contexts.
+     *
+     * @return the current value of the signal
+     */
     T get();
+
+    /**
+     * Returns the current value of the signal without tracking dependencies.
+     * This method should be used when you want to access the value without triggering reactivity.
+     *
+     * @return the current value of the signal without tracking dependencies
+     */
     T getUntracked();
+
+    /**
+     * Returns the origin of the signal, typically used for debugging purposes.
+     *
+     * @return the stack trace element where the signal was created
+     */
     StackTraceElement getOrigin();
 
     /**
