@@ -2,6 +2,7 @@ package eu.nitonfx.signaling;
 
 import eu.nitonfx.signaling.api.SignalLike;
 import eu.nitonfx.signaling.api.Subscription;
+import eu.nitonfx.signaling.api.EffectHandle;
 
 import java.util.*;
 import java.util.function.Function;
@@ -9,7 +10,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Effect implements Runnable {
+public class Effect implements Runnable, EffectHandle {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
@@ -70,4 +71,8 @@ public class Effect implements Runnable {
         cleanup = Collections.emptySet();
     }
 
+    @Override
+    public void cancel() {
+        unsubscribe();
+    }
 }

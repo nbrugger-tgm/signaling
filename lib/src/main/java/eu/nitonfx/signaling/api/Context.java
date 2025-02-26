@@ -110,8 +110,9 @@ public interface Context {
      * Creates an effect that runs the given function whenever one of its dependencies changes.
      *
      * @param effect the function to run
+     * @return an EffectHandle that can be used to manually cancel the effect
      */
-    void createEffect(Runnable effect);
+    EffectHandle createEffect(Runnable effect);
 
     /**
      * Registers a cleanup function to be called when the current effect is disposed.
@@ -135,5 +136,4 @@ public interface Context {
      * @param effect the effect to run
      */
     void run(Runnable effect);
-
 }
