@@ -365,4 +365,18 @@ public class UseEffectTest {
             System.out.println(count.get());
         });
     }
+
+    @Test
+    void manualEffectCancellation() {
+        var cx = Context.create();
+        var count = cx.createSignal(0);
+        Consumer<Integer> effect = mock();
+        var effectHandle = cx.createEffect(() -> effect.accept(count.get()));
+        count.set(5);
+        verify(effect).accept(0);
+        verify(effect).accept(5);
+        effectHandle.cancel();
+        count.set(10);
+        verify(effect, never()).accept(10);
+    }
 }
