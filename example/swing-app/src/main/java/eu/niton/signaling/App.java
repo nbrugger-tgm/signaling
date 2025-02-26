@@ -81,7 +81,7 @@ public class App {
             cx.cleanup(()->parent.remove(base));
         });
     }
-    private static<T,E extends JComponent> void insert(ListSignal<T> elements, Function<SignalLike<T>,E> mapper, JComponent parent) {
+    private static<T,E extends JComponent> void insert(ListSignal<T> elements, Function<? super Signal<T>,E> mapper, JComponent parent) {
         cx.createEffect(()-> {
             for (int i = 0; i < elements.size(); i++) {
                 var elem = elements.getSignal(i);
