@@ -156,10 +156,11 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public synchronized void createEffect(Runnable effect) {
+    public synchronized EffectHandle createEffect(Runnable effect) {
         var effectWrapper = new Effect(effect, this::runAndCapture);
         if (recording != null) nestedEffects.add(effectWrapper);
         else effectWrapper.run();
+        return effectWrapper;
     }
 
     @Override
