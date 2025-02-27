@@ -1,4 +1,4 @@
-package eu.nitonfx.signaling;
+package eu.nitonfx.signaling.collections;
 
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.SetSignal;

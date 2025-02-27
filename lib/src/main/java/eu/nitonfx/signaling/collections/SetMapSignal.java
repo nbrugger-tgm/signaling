@@ -1,4 +1,4 @@
-package eu.nitonfx.signaling;
+package eu.nitonfx.signaling.collections;
 
 import eu.nitonfx.signaling.api.*;
 import org.jetbrains.annotations.NotNull;
@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K, V> {
