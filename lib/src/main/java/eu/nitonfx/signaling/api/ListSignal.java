@@ -1,6 +1,8 @@
 package eu.nitonfx.signaling.api;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * A ListSignal is a reactive list that allows for tracking changes to its elements.
@@ -23,4 +25,6 @@ public interface ListSignal<T> extends List<T> {
      * @return the list of elements without tracking
      */
     List<T> getUntracked();
+
+    EffectHandle onAdd(BiConsumer<SignalLike<T>, Integer> consumer);
 }

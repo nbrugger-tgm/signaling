@@ -1,6 +1,9 @@
 package eu.nitonfx.signaling;
 
 import eu.nitonfx.signaling.api.*;
+import eu.nitonfx.signaling.collections.ArraySignalList;
+import eu.nitonfx.signaling.collections.HashSetSignal;
+import eu.nitonfx.signaling.collections.SetMapSignal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
