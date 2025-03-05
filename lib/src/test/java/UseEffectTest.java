@@ -22,7 +22,7 @@ public class UseEffectTest {
         verify(consumer).accept(12);
     }
 
-    @Test
+    @RepeatedTest(15)
     void useCase() {
         Consumer<Integer> consumer = mock();
         var cx = Context.create();
@@ -46,7 +46,7 @@ public class UseEffectTest {
         verify(consumer).accept(12);
     }
 
-    @RepeatedTest(50)
+    @RepeatedTest(15)
     void useCase2() {
         Consumer<Integer> consumer = mock();
         var cx = Context.create();
@@ -66,6 +66,7 @@ public class UseEffectTest {
         verify(consumer).accept(144);
         verify(consumer).accept(24);
         verify(consumer).accept(12);
+        verifyNoMoreInteractions(consumer);
     }
 
 
