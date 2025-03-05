@@ -116,13 +116,16 @@ public class UseMemoTest {
     void nonChangingUpdatesDoNotRecalculate(){
         Runnable stringifyCalc = mock();
         var cx = Context.create();
-        var signal = cx.createSignal(0);
+        var signal = cx.createSignal(1);
         var isOdd = cx.createMemo(()->signal.get() %2 == 1);
         var oddString = cx.createMemo(()-> {
             stringifyCalc.run();
             return isOdd.get() ? "odd" : "even";
         });
         cx.run(()-> cx.createEffect(oddString::get));
+        signal.set(11);
+        signal.set(13);
+        signal.set(3);
         verify(stringifyCalc, times(1)).run();
     }
 

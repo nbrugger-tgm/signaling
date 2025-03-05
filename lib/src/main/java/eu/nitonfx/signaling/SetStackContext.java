@@ -44,9 +44,11 @@ public class SetStackContext implements Context {
 
     private void onSignalWrite(Supplier<Set<Runnable>> observers) {
         if (recording != null) deferredEffects.add(observers);
-        else for (Runnable runnable : observers.get()) {
-                    runnable.run();
-        }
+        else run(()-> {
+            for (Runnable runnable : observers.get()) {
+                runnable.run();
+            }
+        });
     }
 
     /**
@@ -160,10 +162,14 @@ public class SetStackContext implements Context {
 
     @Override
     public synchronized EffectHandle createEffect(Runnable effect) {
-        var effectWrapper = new Effect(effect, this::runAndCapture);
+        var effectWrapper = new Effect(effect, this::runAndCapture, this::runEffect);
+        runEffect(effectWrapper);
+        return effectWrapper;
+    }
+
+    private void runEffect(Effect effectWrapper) {
         if (recording != null) nestedEffects.add(effectWrapper);
         else effectWrapper.run();
-        return effectWrapper;
     }
 
     @Override
@@ -195,7 +201,7 @@ public class SetStackContext implements Context {
     @Override
     public void run(Runnable effect) {
         var capture = runAndCapture(effect);
-        capture.nestedEffects().forEach(this::run);
+        capture.nestedEffects().forEach(Effect::run);
         capture.flatDeferredEffects().forEach(this::run);
         if (!capture.cleanup().isEmpty()) throw new IllegalStateException("Cleanup was called outside of an effect!");
     }

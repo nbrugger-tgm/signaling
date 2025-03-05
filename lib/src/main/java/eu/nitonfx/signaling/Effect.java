@@ -5,6 +5,7 @@ import eu.nitonfx.signaling.api.Subscription;
 import eu.nitonfx.signaling.api.EffectHandle;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import java.util.stream.Stream;
 public class Effect implements Runnable, EffectHandle {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
+    private final Consumer<Effect> effectExecutor;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
     private Set<Dependency<?>> dependencies = Set.of();
     private List<Effect> nestedEffects = List.of();
@@ -25,9 +27,10 @@ public class Effect implements Runnable, EffectHandle {
         return trace.toString();
     }
 
-    public Effect(Runnable effect, Function<Runnable, EffectCapture> capturingExecutor) {
+    public Effect(Runnable effect, Function<Runnable, EffectCapture> capturingExecutor, Consumer<Effect> effectExecutor) {
         this.effect = effect;
         this.capturingExecutor = capturingExecutor;
+        this.effectExecutor = effectExecutor;
         this.trace = Thread.currentThread().getStackTrace()[3];
     }
 
@@ -54,7 +57,7 @@ public class Effect implements Runnable, EffectHandle {
     }
 
     private <T> void runIfDependencyChanged(Dependency<T> dependency) {
-        if(dependency.isChanged()) run();
+        if(dependency.isChanged()) effectExecutor.accept(this);
     }
 
     public void unsubscribe() {
