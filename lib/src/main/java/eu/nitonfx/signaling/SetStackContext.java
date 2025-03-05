@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 public class SetStackContext implements Context {
     private final Set<Dependency<?>> dependencies = new HashSet<>();
     private final List<Effect> nestedEffects = new ArrayList<>(3);
-    private final List<Supplier<Set<Runnable>>> deferredSignalUpdate = new ArrayList<>(8);
+    private final List<Supplier<Set<Runnable>>> deferredEffects = new ArrayList<>(8);
     private final Set<Runnable> cleanup = new HashSet<>();
     @Nullable
     private Runnable recording = null;
@@ -43,9 +43,9 @@ public class SetStackContext implements Context {
     }
 
     private void onSignalWrite(Supplier<Set<Runnable>> observers) {
-        if (recording != null) deferredSignalUpdate.add(observers);
+        if (recording != null) deferredEffects.add(observers);
         else for (Runnable runnable : observers.get()) {
-            runnable.run();
+                    runnable.run();
         }
     }
 
@@ -104,12 +104,12 @@ public class SetStackContext implements Context {
         var disabledRecording = recording;
         var disabledDependencies = new HashSet<>(dependencies);
         var disabledNestedEffects = new ArrayList<>(nestedEffects);
-        var disabledDeferredSignalUpdates = new ArrayList<>(deferredSignalUpdate);
+        var disabledDeferredSignalUpdates = new ArrayList<>(deferredEffects);
         var disabledClanups = new HashSet<>(cleanup);
 
         dependencies.clear();
         nestedEffects.clear();
-        deferredSignalUpdate.clear();
+        deferredEffects.clear();
         cleanup.clear();
 
         recording = runnable;
@@ -118,17 +118,17 @@ public class SetStackContext implements Context {
         var isolatedRecording = new EffectCapture(
                 Set.copyOf(dependencies),
                 List.copyOf(nestedEffects),
-                List.copyOf(deferredSignalUpdate),
+                List.copyOf(deferredEffects),
                 Set.copyOf(cleanup)
         );
 
         dependencies.clear();
         nestedEffects.clear();
-        deferredSignalUpdate.clear();
+        deferredEffects.clear();
         cleanup.clear();
         dependencies.addAll(disabledDependencies);
         nestedEffects.addAll(disabledNestedEffects);
-        deferredSignalUpdate.addAll(disabledDeferredSignalUpdates);
+        deferredEffects.addAll(disabledDeferredSignalUpdates);
         cleanup.addAll(disabledClanups);
         return isolatedRecording;
     }
@@ -138,18 +138,18 @@ public class SetStackContext implements Context {
         var disabledRecording = recording;
         var disabledDependencies = new HashSet<>(dependencies);
         var disabledNestedEffects = new ArrayList<>(nestedEffects);
-        var disabledDeferredSignalUpdates = new ArrayList<>(deferredSignalUpdate);
+        var disabledDeferredSignalUpdates = new ArrayList<>(deferredEffects);
         var disabledClanups = new HashSet<>(cleanup);
         recording = null;
         T val = function.get();
         recording = disabledRecording;
         dependencies.clear();
         nestedEffects.clear();
-        deferredSignalUpdate.clear();
+        deferredEffects.clear();
         cleanup.clear();
         dependencies.addAll(disabledDependencies);
         nestedEffects.addAll(disabledNestedEffects);
-        deferredSignalUpdate.addAll(disabledDeferredSignalUpdates);
+        deferredEffects.addAll(disabledDeferredSignalUpdates);
         cleanup.addAll(disabledClanups);
         return val;
     }
@@ -184,12 +184,12 @@ public class SetStackContext implements Context {
     private synchronized EffectCapture runAndCapture(Runnable effect) {
         dependencies.clear();
         nestedEffects.clear();
-        deferredSignalUpdate.clear();
+        deferredEffects.clear();
         cleanup.clear();
         recording = effect;
         effect.run();
         recording = null;
-        return new EffectCapture(Set.copyOf(dependencies), List.copyOf(nestedEffects), List.copyOf(deferredSignalUpdate), Set.copyOf(cleanup));
+        return new EffectCapture(Set.copyOf(dependencies), List.copyOf(nestedEffects), List.copyOf(deferredEffects), Set.copyOf(cleanup));
     }
 
     @Override
