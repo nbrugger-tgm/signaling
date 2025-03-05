@@ -135,4 +135,10 @@ public interface Context {
      * @param effect the effect to run
      */
     void run(Runnable effect);
+
+    /**
+     * @return an empty list signal
+     * @param <T> the element type of the list {@link  ListSignal}
+     */
+    <T> ListSignal<T> createListSignal();
 }
