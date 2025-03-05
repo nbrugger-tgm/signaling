@@ -6,6 +6,7 @@ import eu.nitonfx.signaling.api.Signal;
 import eu.nitonfx.signaling.api.SignalLike;
 
 import javax.swing.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -14,7 +15,7 @@ public class App {
     private static int i = 0;
 
     public static void main(String[] args) {
-        cx.createEffect(() -> {
+        cx.run(() -> {
             JFrame frame = new JFrame("App");
             frame.getContentPane().add(app());
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -25,7 +26,7 @@ public class App {
 
     private static JPanel app() {
         System.out.println("App.app");
-        var todos = cx.createSignal(new TodoItem[0]);
+        var todos = cx.<TodoItem>createListSignal();
         final var pane = new JPanel();
         pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
         var label = new JLabel();
@@ -53,24 +54,25 @@ public class App {
         return pane;
     }
 
-    private static JPanel todoItem(SignalLike<TodoItem> todo, Runnable onRemove) {
+    private static JPanel todoItem(Supplier<TodoItem> todo, Runnable onRemove) {
         System.out.println("App.todoItem");
         var item = new JPanel();
-        var label = new JLabel();
-        var checkbox = new JCheckBox();
-        var deleteButton = new JButton("remove");
-        deleteButton.addActionListener(e -> onRemove.run());
 
-        cx.createEffect(() -> {
-            var todoItem = todo.get();
-            checkbox.setSelected(todoItem.done().get());
-            label.setText(todoItem.text().get());
-            label.setEnabled(!todoItem.done().get());
-        });
+        var checkbox = new JCheckBox();
+        set(checkbox::setSelected, todo.get().done());
         checkbox.addActionListener(e -> todo.get().done().set(checkbox.isSelected()));
         item.add(checkbox);
+
+        var label = new JLabel();
+        set(label::setText, todo.get().text());
+        set(label::setEnabled, todo.get().done(), bool -> !bool);
         item.add(label);
+
+
+        var deleteButton = new JButton("remove");
+        deleteButton.addActionListener(e -> onRemove.run());
         item.add(deleteButton);
+
         return item;
     }
 
@@ -99,6 +101,13 @@ public class App {
         elements.onAdd((element, index) -> insert(() -> mapper.apply(element), parent));
     }
 
+    private static <T> void set(Consumer<T> setter, Supplier<T> signal) {
+        cx.createEffect(() -> setter.accept(signal.get()));
+    }
+    private static <T,R> void set(Consumer<R> setter, Supplier<T> signal, Function<T, R> mapping) {
+        var memo = cx.createMemo(()-> mapping.apply(signal.get()));
+        cx.createEffect(() -> setter.accept(memo.get()));
+    }
     private record TodoItem(Signal<String> text, Signal<Boolean> done) {
         TodoItem(String text, boolean done) {
             this(cx.createSignal(text), cx.createSignal(done));

@@ -205,4 +205,9 @@ public class SetStackContext implements Context {
         capture.flatDeferredEffects().forEach(this::run);
         if (!capture.cleanup().isEmpty()) throw new IllegalStateException("Cleanup was called outside of an effect!");
     }
+
+    @Override
+    public <T> ListSignal<T> createListSignal() {
+        return new ArraySignalList<>(this, getParentStackElement());
+    }
 }
