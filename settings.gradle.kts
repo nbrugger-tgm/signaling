@@ -1,5 +1,6 @@
 rootProject.name = "signaling"
 include("lib")
+include("processor")
 include("example:swing-app")
 
 includeBuild("dependencies/proto")
