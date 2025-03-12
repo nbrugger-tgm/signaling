@@ -1,0 +1,3 @@
+[submodule "dependencies/proto"]
+	path = dependencies/proto
+	url = git@github.com:nbrugger-tgm/proto.git

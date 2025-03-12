@@ -11,6 +11,9 @@ repositories {
 }
 
 dependencies {
+    annotationProcessor(project(":processor"))
+    implementation(project(":processor"))
+
     implementation(project(":lib"))
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

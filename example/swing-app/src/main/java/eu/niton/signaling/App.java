@@ -1,116 +1,94 @@
 package eu.niton.signaling;
 
+import eu.niton.signaling.swing.ReactiveSwing;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.ListSignal;
-import eu.nitonfx.signaling.api.Signal;
-import eu.nitonfx.signaling.api.SignalLike;
+import eu.nitonfx.signaling.processors.elementbuilder.Element;
+import eu.nitonfx.signaling.processors.reactiveproxy.Reactive;
 
 import javax.swing.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static eu.nitonfx.signaling.processors.reactiveproxy.ProxyFactory.create;
 
 public class App {
     private static final Context cx = Context.create();
-    private static int i = 0;
+    private static final ReactiveSwing jsx = new ReactiveSwing(cx);
 
     public static void main(String[] args) {
         cx.run(() -> {
-            JFrame frame = new JFrame("App");
-            frame.getContentPane().add(app());
+            var frame = jsx.JFrame();
+            frame.getContentPane().add(App().get());
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(800, 450);
             frame.setVisible(true);
         });
     }
 
-    private static JPanel app() {
+    private static Element<JPanel> App() {
         System.out.println("App.app");
         var todos = cx.<TodoItem>createListSignal();
-        final var pane = new JPanel();
-        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-        var label = new JLabel();
-        cx.createEffect(() -> label.setText(todos.size() + " TODOs"));
+        final var pane = jsx.JPanel();
+        pane.setLayout(new BoxLayout(pane.get(), BoxLayout.Y_AXIS));
+        var label = jsx.JLabel();
+        label.setText(()->todos.size() + " TODOs");
         pane.add(label);
-
-        var adder = todoInput(todos);
-        pane.add(adder);
-
-        var todoList = todoList(todos);
-        pane.add(todoList);
+        pane.add(TodoInput(todos));
+        pane.add(TodoList(todos));
 
         return pane;
     }
 
-    private static JPanel todoList(ListSignal<TodoItem> todos) {
+    private static Element<JPanel> TodoList(ListSignal<TodoItem> todos) {
         System.out.println("App.todoList");
-        var pane = new JPanel();
-        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-        insert(
-                todos,
-                it -> todoItem(it, () -> todos.remove(it.get())),
-                pane
-        );
+        var pane = jsx.JPanel();
+        pane.setLayout(new BoxLayout(pane.get(), BoxLayout.Y_AXIS));
+        todos.onAdd((todo, index) -> {
+            var todoItem = TodoItem(todo, () -> todos.remove(todo.getUntracked()));
+            pane.add(todoItem);
+        });
         return pane;
     }
 
-    private static JPanel todoItem(Supplier<TodoItem> todo, Runnable onRemove) {
+    private static Element<JPanel> TodoItem(Supplier<TodoItem> todo, Runnable onRemove) {
         System.out.println("App.todoItem");
-        var item = new JPanel();
+        var item = jsx.JPanel();
 
-        var checkbox = new JCheckBox();
-        set(checkbox::setSelected, todo.get().done());
-        checkbox.addActionListener(e -> todo.get().done().set(checkbox.isSelected()));
+        var checkbox = jsx.JCheckBox();
+        checkbox.setSelected(()-> todo.get().done());
+        checkbox.addActionListener(e -> todo.get().setDone(checkbox.isSelected()));
         item.add(checkbox);
 
-        var label = new JLabel();
-        set(label::setText, todo.get().text());
-        set(label::setEnabled, todo.get().done(), bool -> !bool);
+        var label = jsx.JLabel();
+        label.setText(todo.get().text());
+        label.setEnabled(() -> !todo.get().done());
         item.add(label);
 
 
-        var deleteButton = new JButton("remove");
+        var deleteButton = jsx.JButton(new JButton("remove"));
         deleteButton.addActionListener(e -> onRemove.run());
         item.add(deleteButton);
 
         return item;
     }
 
-    private static JPanel todoInput(ListSignal<TodoItem> todos) {
+    private static Element<JPanel> TodoInput(ListSignal<TodoItem> todos) {
         System.out.println("App.todoInput");
-        var pane = new JPanel();
-        var input = new JTextField();
+        var pane = jsx.JPanel();
+        var input = jsx.JTextField();
         input.setColumns(20);
-        var button = new JButton("Add");
-        button.addActionListener(e -> todos.add(new TodoItem(input.getText(), false)));
+        var button = jsx.JButton(new JButton("Add"));
+        button.addActionListener(e -> todos.add(create(cx,new TodoItem$Init(input.getText(), false))));
         pane.add(input);
         pane.add(button);
         return pane;
     }
 
-    private static <T extends JComponent> void insert(Supplier<T> element, JComponent parent) {
-        cx.createEffect(() -> {
-            var base = element.get();
-            parent.add(base);
-            parent.validate();
-            cx.cleanup(() -> parent.remove(base));
-        });
-    }
-
-    private static <T, E extends JComponent> void insert(ListSignal<T> elements, Function<? super SignalLike<T>, E> mapper, JComponent parent) {
-        elements.onAdd((element, index) -> insert(() -> mapper.apply(element), parent));
-    }
-
-    private static <T> void set(Consumer<T> setter, Supplier<T> signal) {
-        cx.createEffect(() -> setter.accept(signal.get()));
-    }
-    private static <T,R> void set(Consumer<R> setter, Supplier<T> signal, Function<T, R> mapping) {
-        var memo = cx.createMemo(()-> mapping.apply(signal.get()));
-        cx.createEffect(() -> setter.accept(memo.get()));
-    }
-    private record TodoItem(Signal<String> text, Signal<Boolean> done) {
-        TodoItem(String text, boolean done) {
-            this(cx.createSignal(text), cx.createSignal(done));
-        }
+    @Reactive
+    interface TodoItem {
+        boolean done();
+        String text();
+        void setText(String text);
+        void setDone(boolean done);
     }
 }
