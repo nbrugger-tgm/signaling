@@ -1,6 +1,10 @@
 package eu.nitonfx.signaling.api;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 /**
  * A MapSignal is a reactive map that allows for tracking changes to its entries.
@@ -21,7 +25,19 @@ public interface MapSignal<K, V> extends Map<K,V> {
     SignalLike<V> getSignal(K key);
 
     /**
+     * Similar to {@link #getSignal(Object)} but based on a dynamic/reactive key where the returned signal is updated
+     * when the key supplier does
+     * @param key a function to provide a key to look up. Should be a {@link SignalLike} or at least be based on one
+     * @return a signal that changes when the key or the value the key points to changes
+     */
+    Supplier<V> get(Supplier<? extends K> key);
+
+    /**
      * @return the map of entries without tracking
      */
     Map<K,V> getUntracked();
+
+    @NotNull SetSignal<K> keySetSignal();
+
+    EffectHandle onPut(BiConsumer<K, SignalLike<V>> o);
 }
