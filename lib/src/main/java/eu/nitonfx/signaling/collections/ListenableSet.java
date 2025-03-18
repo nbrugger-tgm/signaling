@@ -28,7 +28,7 @@ public class ListenableSet<E> extends AbstractSet<E> {
 
     @Override
     public boolean remove(Object o) {
-        var ret = super.remove(o);
+        var ret = set.remove(o);
         if(ret) removeListener.accept((E) o);
         return ret;
     }
