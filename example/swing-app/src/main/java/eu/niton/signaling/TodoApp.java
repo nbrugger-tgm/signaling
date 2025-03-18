@@ -7,11 +7,12 @@ import eu.nitonfx.signaling.processors.elementbuilder.Element;
 import eu.nitonfx.signaling.processors.reactiveproxy.Reactive;
 
 import javax.swing.*;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import static eu.nitonfx.signaling.processors.reactiveproxy.ProxyFactory.create;
 
-public class App {
+public class TodoApp {
     private static final Context cx = Context.create();
     private static final ReactiveSwing jsx = new ReactiveSwing(cx);
 

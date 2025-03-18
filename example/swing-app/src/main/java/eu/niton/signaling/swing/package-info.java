@@ -5,6 +5,8 @@
         JCheckBox.class,
         JPanel.class,
         JTextField.class,
+        JComboBox.class,
+        JSpinner.class
 }, aggregatorClassname = "ReactiveSwing", extensions = SwingExtension.class)
 package eu.niton.signaling.swing;
 

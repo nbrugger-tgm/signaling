@@ -6,10 +6,12 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K, V> {
-    private final SetSignal<Entry<K, V>> map;
+    private final SetSignal<SignalEntry<K, V>> map;
     private final Context cx;
     private final StackTraceElement origin;
 
@@ -27,14 +29,30 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
 
     @Override
     public Signal<V> getSignal(K key) {
-        return map.stream().filter(e -> e.getKey().equals(key)).findFirst().map(e -> ((SignalEntry<K, V>) e).value).orElse(null);
+        return map.stream().filter(e -> e.getKey().equals(key)).findFirst().map(e -> e.value).orElse(null);
+    }
+
+    @Override
+    public Supplier<V> get(Supplier<? extends K> key) {
+        var memo = cx.createMemo(()->getSignal(key.get()));
+        return ()-> {
+            var entry = memo.get();
+            if(entry != null) return entry.get();
+            else return null;
+        };
     }
 
     @Override
     public @Nullable V put(K key, V value) {
-        var removed = remove(key);
-        map.add(new SignalEntry<>(key, cx.createSignal(value)));
-        return removed;
+        var existing = getSignal(key);
+        if(existing != null) {
+            var old = existing.getUntracked();
+            existing.set(value);
+            return old;
+        } else {
+            map.add(new SignalEntry<>(key, cx.createSignal(value)));
+            return null;
+        }
     }
 
     @Override
@@ -44,7 +62,7 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
 
     @Override
     public @NotNull Set<Entry<K, V>> entrySet() {
-        return map;
+        return Collections.unmodifiableSet(map);
     }
 
     @Override
@@ -54,6 +72,30 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
                 .map(it -> Map.entry(it.getKey(), ((SignalEntry<K, V>) it.getValue()).getUntracked()))
                 .toArray(Entry[]::new)
         );
+    }
+
+    @Override
+    public @NotNull SetSignal<K> keySetSignal() {
+        var signal = cx.createSignal(Set.<K>of());
+        map.onAdd(it -> {
+            signal.add(it.getKey());
+            cx.cleanup(()->signal.remove(it.getKey()));
+        });
+        return signal;
+    }
+
+    @Override
+    public EffectHandle onPut(BiConsumer<K, SignalLike<V>> o) {
+        Map<K, EffectHandle> handles = new HashMap<>();
+        map.getUntracked().forEach(it -> handles.put(it.getKey(), cx.createEffect(()->o.accept(it.getKey(), it.value))));
+        map.onAdd((e) -> {
+            var oldHandle = handles.put(e.getKey(), cx.createEffect(() -> o.accept(e.getKey(), e.value)));
+            if(oldHandle != null) oldHandle.cancel();
+        });
+        return ()->{
+            handles.forEach((k,e)->e.cancel());
+            handles.clear();
+        };
     }
 
     public StackTraceElement getOrigin() {

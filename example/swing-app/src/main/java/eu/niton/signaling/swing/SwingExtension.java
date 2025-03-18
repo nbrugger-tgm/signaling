@@ -2,6 +2,7 @@ package eu.niton.signaling.swing;
 
 import eu.nitonfx.signaling.api.Context;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class SwingExtension {
@@ -59,5 +60,12 @@ public class SwingExtension {
                 element.revalidate();
             });
         });
+    }
+
+    public static<E> void setModel(Context cx, JComboBox<E> element, ComboBoxModel<E> comp) {
+        element.setModel(comp);
+        var toSelect = element.getSelectedItem();
+        element.setSelectedItem(null);
+        element.setSelectedItem(toSelect);
     }
 }

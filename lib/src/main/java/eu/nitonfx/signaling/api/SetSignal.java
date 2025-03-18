@@ -1,6 +1,7 @@
 package eu.nitonfx.signaling.api;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A SetSignal is a reactive set that allows for tracking changes to its elements.
@@ -11,9 +12,14 @@ import java.util.Set;
 public interface SetSignal<E> extends Set<E> {
 
     /**
-     * Returns the set of elements without tracking.
+     * Returns the set of elements without tracking reads.
      *
-     * @return the set of elements without tracking
+     * Writes <i>might</i> still be forwarded to the signal list and trigger effects or not.
+     * This means that it is not recommended to modify the returned value
+     *
+     * @return the set of elements without tracking reads
      */
     Set<E> getUntracked();
+
+    EffectHandle onAdd(Consumer<E> o);
 }
