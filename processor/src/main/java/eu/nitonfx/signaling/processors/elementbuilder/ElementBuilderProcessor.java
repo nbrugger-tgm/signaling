@@ -84,11 +84,14 @@ public class ElementBuilderProcessor extends BaseProcessor {
         builderClasses.forEach((k, v) -> {
             v.methodSpecs.stream().filter(MethodSpec::isConstructor).forEach(ctor -> {
                 var specificParams = ctor.parameters.subList(1, ctor.parameters.size());
+                var rawType = ClassName.get(pack.toString(), v.name);
+                var returnType = v.typeVariables.isEmpty() ? rawType : ParameterizedTypeName.get(rawType, v.typeVariables.toArray(new TypeVariableName[0]));
                 aggregatorClass.addMethod(MethodSpec.methodBuilder(k)
                         .addModifiers(Modifier.PUBLIC)
-                        .returns(ClassName.get(pack.toString(), v.name))
+                        .returns(returnType)
                         .addParameters(specificParams)
-                        .addStatement("return new $N($L)", v, Stream.concat(
+                        .addTypeVariables(v.typeVariables)
+                        .addStatement("return new $T($L)", returnType, Stream.concat(
                                 Stream.of(cx.name),
                                 specificParams.stream().map(it -> it.name)
                         ).collect(Collectors.joining(", ")))
@@ -99,12 +102,14 @@ public class ElementBuilderProcessor extends BaseProcessor {
     }
 
     private TypeSpec generateReactiveBuilder(String pack, TypeElement baseClass, List<TypeElement> toSubstitute, List<TypeElement> extensions) {
+        var generics = baseClass.getTypeParameters().stream().map(TypeVariableName::get).toList();
+        var baseClassName = generics.isEmpty() ? ClassName.get(baseClass) : ParameterizedTypeName.get(ClassName.get(baseClass), generics.toArray(TypeVariableName[]::new));
         var builderClass = TypeSpec.classBuilder(getReactiveBuilderName(baseClass))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Element.class),ClassName.get(baseClass)));
+                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Element.class), ClassName.get(baseClass)))
+                .addTypeVariables(generics);
         var cx = FieldSpec.builder(ClassName.get(Context.class), "cx", Modifier.PRIVATE, Modifier.FINAL).build();
         builderClass.addField(cx);
-        final var baseClassName = ClassName.get(baseClass);
         var element = FieldSpec.builder(baseClassName, "element", Modifier.PRIVATE, Modifier.FINAL).build();
         builderClass.addField(element);
 
@@ -120,8 +125,8 @@ public class ElementBuilderProcessor extends BaseProcessor {
         builderClass.addMethod(MethodSpec.constructorBuilder()
                 .addParameter(ClassName.get(Context.class), "cx")
                 .addParameter(baseClassName, "element")
-                .addCode("this.element = element;")
-                .addCode("this.cx = cx;")
+                .addStatement("this.element = element")
+                .addStatement("this.cx = cx")
                 .build());
 
         var methods = getAllMethods(baseClass)
@@ -167,8 +172,8 @@ public class ElementBuilderProcessor extends BaseProcessor {
         var methods = new ArrayList<MethodSpec>(3);
         var isSetter = method.getSimpleName().toString().startsWith("set");
         forwardingMethods(cx, element, method, !complexParams.isEmpty(), isSetter, toSubstitute, relevantExtension).forEach(methods::add);
-        if(isSetter) {
-            methods.add(reactiveMethod(cx, element, method, distinguish));
+        if (isSetter) {
+            methods.add(reactiveMethod(cx, element, method, distinguish, relevantExtension.isPresent()));
         }
         if (!complexParams.isEmpty()) {
             //special complex handling
@@ -180,21 +185,24 @@ public class ElementBuilderProcessor extends BaseProcessor {
     private Optional<ExecutableElement> findMatchingExtension(List<TypeElement> extensions, ExecutableElement method) {
         final var additionalParamCount = 2;//context, element
         return extensions.stream().flatMap(it -> ElementFilter.methodsIn(it.getEnclosedElements()).stream())
-                .filter( it -> it.getSimpleName().contentEquals(method.getSimpleName()))
-                .filter(it -> typeUtils().isAssignable(method.getEnclosingElement().asType(), it.getParameters().get(1).asType()))
-                .filter(it -> it.getParameters().size()- additionalParamCount == method.getParameters().size())
+                .filter(it -> it.getSimpleName().contentEquals(method.getSimpleName()))
+                .filter(it -> typeUtils().isAssignable(method.getEnclosingElement().asType(), typeUtils().erasure(it.getParameters().get(1).asType())))
+                .filter(it -> it.getParameters().size() - additionalParamCount == method.getParameters().size())
                 .filter(it -> {
                     for (var i = additionalParamCount; i < it.getParameters().size(); i++) {
                         var inExtension = it.getParameters().get(i);
-                        var actual = method.getParameters().get(i-additionalParamCount);
-                        if(!typeUtils().isSameType(inExtension.asType(),actual.asType())) return false;
+                        var actual = method.getParameters().get(i - additionalParamCount);
+                        var extensionType = typeUtils().erasure(inExtension.asType());
+                        var actualType = typeUtils().erasure(actual.asType());
+                        var matching = typeUtils().isSameType(extensionType, actualType);
+                        if (!matching) return false;
                     }
                     return true;
                 })
                 .findFirst();
     }
 
-    private MethodSpec reactiveMethod(FieldSpec cx, FieldSpec element, ExecutableElement method, boolean distinguish) {
+    private MethodSpec reactiveMethod(FieldSpec cx, FieldSpec element, ExecutableElement method, boolean distinguish, boolean hasExtension) {
         String qualifier = distinguish ? method.getParameters().stream()
                 .map(it -> {
                     var type = it.asType();
@@ -214,10 +222,13 @@ public class ElementBuilderProcessor extends BaseProcessor {
             return ParameterSpec.builder(supplier, param.getSimpleName().toString()).build();
         }).toList();
         forwardMethod.addParameters(params);
-        forwardMethod.addCode(CodeBlock.builder()
-                .addStatement("$N.createEffect(() -> $N.$N($L))", cx, element, method.getSimpleName(), params.stream().map(it -> it.name + ".get()").collect(Collectors.joining(", ")))
-                .build()
-        );
+
+        final var parameterString = params.stream().map(it -> it.name + ".get()").collect(Collectors.joining(", "));
+        if (hasExtension) {
+            forwardMethod.addStatement("$N.createEffect(() -> $N($L))", cx, method.getSimpleName(), parameterString);
+        } else {
+            forwardMethod.addStatement("$N.createEffect(() -> $N.$N($L))", cx, element, method.getSimpleName(), parameterString);
+        }
 
         return forwardMethod.build();
     }
@@ -241,18 +252,18 @@ public class ElementBuilderProcessor extends BaseProcessor {
         var params = method.getParameters().stream().map(ParameterSpec::get).toList();
         var forwardMethod = MethodSpec.methodBuilder(method.getSimpleName().toString());
         forwardMethod.addModifiers(Modifier.PUBLIC);
-        if(isSetter || relevantExtension.isPresent()) forwardMethod.returns(TypeName.VOID);
+        if (isSetter || relevantExtension.isPresent()) forwardMethod.returns(TypeName.VOID);
         else forwardMethod.returns(TypeName.get(method.getReturnType()));
         forwardMethod.addExceptions(method.getThrownTypes().stream().map(TypeName::get).toList());
         forwardMethod.addTypeVariables(method.getTypeParameters().stream().map(TypeVariableName::get).toList());
 
         var requiresSubstitution = method.getParameters().stream().filter(p -> {
             return toSubstitute.stream().anyMatch(subst -> typeUtils().isAssignable(subst.asType(), p.asType()));
-        }).map(it-> it.getSimpleName().toString()).toList();
+        }).map(it -> it.getSimpleName().toString()).toList();
         var substitutedVariant = !requiresSubstitution.isEmpty() ? forwardMethod.build().toBuilder() : null;
-        if(!requiresSubstitution.isEmpty()) {
+        if (!requiresSubstitution.isEmpty()) {
             substitutedVariant.addParameters(method.getParameters().stream().map(param -> {
-                if(!requiresSubstitution.contains(param.getSimpleName().toString())) return ParameterSpec.get(param);
+                if (!requiresSubstitution.contains(param.getSimpleName().toString())) return ParameterSpec.get(param);
                 var wildcardType = WildcardTypeName.subtypeOf(TypeName.get(param.asType()));
                 var reactiveSubst = ParameterizedTypeName.get(ClassName.get(Element.class), wildcardType);
                 return ParameterSpec.builder(reactiveSubst, param.getSimpleName().toString()).build();
@@ -260,13 +271,13 @@ public class ElementBuilderProcessor extends BaseProcessor {
 
             if (hasComplexParams && isSetter) {
                 substitutedVariant.addCode(CodeBlock.builder()
-                        .addStatement("$N($L)", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name) ? it.name+".get()" : it.name).collect(Collectors.joining(", ")))
+                        .addStatement("$N($L)", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name) ? it.name + ".get()" : it.name).collect(Collectors.joining(", ")))
                         .build()
                 );
             } else {
                 var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID && relevantExtension.isEmpty();
                 substitutedVariant.addCode(CodeBlock.builder()
-                        .addStatement("$L$N($L)",hasReturn?"return ":"", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name) ? it.name+".get()" : it.name).collect(Collectors.joining(", ")))
+                        .addStatement("$L$N($L)", hasReturn ? "return " : "", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name) ? it.name + ".get()" : it.name).collect(Collectors.joining(", ")))
                         .build()
                 );
             }
@@ -275,24 +286,31 @@ public class ElementBuilderProcessor extends BaseProcessor {
 
         forwardMethod.addParameters(params);
         final var parameters = params.stream().map(it -> it.name).collect(Collectors.joining(", "));
-        if (hasComplexParams && isSetter) {
-            forwardMethod.addCode(CodeBlock.builder()
-                    .addStatement("$N.createEffect(() -> $N.$N($L))", cx, element, method.getSimpleName(), parameters)
-                    .build()
-            );
+        var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID;
+        var extensionInvocation = relevantExtension.map(extension -> CodeBlock.builder()
+                .addStatement("$T.$N($N, $N, $L)",
+                        extension.getEnclosingElement().asType(), extension.getSimpleName(), cx, element, parameters)
+                .build()
+        );
+        var directInvocation = CodeBlock.builder().addStatement("$L$N.$N($L)",
+                hasReturn ? "return " : "",
+                element,
+                method.getSimpleName(),
+                parameters
+        ).build();
+        if(extensionInvocation.isPresent()) {
+            forwardMethod.addCode(extensionInvocation.get());
+        } else if (hasComplexParams && isSetter) {
+            final var createEffectInvocation = CodeBlock.builder()
+                    .add("$N.createEffect(", cx)
+                    .beginControlFlow("()->")
+                        .add(directInvocation)
+                    .endControlFlow()
+                    .add(");")
+                    .build();
+            forwardMethod.addCode(createEffectInvocation);
         } else {
-            var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID;
-            relevantExtension.ifPresentOrElse(extension->{
-                forwardMethod.addStatement("$T.$N($N, $N, $L)",
-                        extension.getEnclosingElement().asType(),extension.getSimpleName(), cx, element, parameters);
-            }, ()->{
-                forwardMethod.addStatement("$L$N.$N($L)",
-                        hasReturn?"return ":"",
-                        element,
-                        method.getSimpleName(),
-                        parameters
-                );
-            });
+            forwardMethod.addCode(directInvocation);
         }
         return Stream.of(forwardMethod, substitutedVariant).filter(Objects::nonNull).map(MethodSpec.Builder::build);
     }
