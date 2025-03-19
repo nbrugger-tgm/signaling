@@ -18,7 +18,6 @@ dependencies {
     implementation(project(":lib"))
 
     implementation("com.niton.compile:proto")
-    implementation("com.squareup:javapoet:1.13.0")
 }
 
 repositories {

@@ -2,7 +2,7 @@ package eu.nitonfx.signaling.processors.elementbuilder;
 
 import com.google.auto.service.AutoService;
 import com.niton.compile.processor.BaseProcessor;
-import com.squareup.javapoet.*;
+import com.palantir.javapoet.*;
 import eu.nitonfx.signaling.api.Context;
 
 import javax.annotation.processing.Processor;
@@ -74,7 +74,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
         var aggregatorClass = TypeSpec.classBuilder(aggregatorClassname).addModifiers(Modifier.PUBLIC, Modifier.FINAL);
         var cx = FieldSpec.builder(Context.class, "cx", Modifier.PRIVATE, Modifier.FINAL).build();
         aggregatorClass.addField(cx);
-        var ctorParam = ParameterSpec.builder(cx.type, cx.name).build();
+        var ctorParam = ParameterSpec.builder(cx.type(), cx.name()).build();
         aggregatorClass.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ctorParam)
@@ -82,18 +82,18 @@ public class ElementBuilderProcessor extends BaseProcessor {
                 .build()
         );
         builderClasses.forEach((k, v) -> {
-            v.methodSpecs.stream().filter(MethodSpec::isConstructor).forEach(ctor -> {
-                var specificParams = ctor.parameters.subList(1, ctor.parameters.size());
-                var rawType = ClassName.get(pack.toString(), v.name);
-                var returnType = v.typeVariables.isEmpty() ? rawType : ParameterizedTypeName.get(rawType, v.typeVariables.toArray(new TypeVariableName[0]));
+            v.methodSpecs().stream().filter(MethodSpec::isConstructor).forEach(ctor -> {
+                var specificParams = ctor.parameters().subList(1, ctor.parameters().size());
+                var rawType = ClassName.get(pack.toString(), v.name());
+                var returnType = v.typeVariables().isEmpty() ? rawType : ParameterizedTypeName.get(rawType, v.typeVariables().toArray(new TypeVariableName[0]));
                 aggregatorClass.addMethod(MethodSpec.methodBuilder(k)
                         .addModifiers(Modifier.PUBLIC)
                         .returns(returnType)
                         .addParameters(specificParams)
-                        .addTypeVariables(v.typeVariables)
+                        .addTypeVariables(v.typeVariables())
                         .addStatement("return new $T($L)", returnType, Stream.concat(
-                                Stream.of(cx.name),
-                                specificParams.stream().map(it -> it.name)
+                                Stream.of(cx.name()),
+                                specificParams.stream().map(ParameterSpec::name)
                         ).collect(Collectors.joining(", ")))
                         .build());
             });
@@ -223,7 +223,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
         }).toList();
         forwardMethod.addParameters(params);
 
-        final var parameterString = params.stream().map(it -> it.name + ".get()").collect(Collectors.joining(", "));
+        final var parameterString = params.stream().map(it -> it.name() + ".get()").collect(Collectors.joining(", "));
         if (hasExtension) {
             forwardMethod.addStatement("$N.createEffect(() -> $N($L))", cx, method.getSimpleName(), parameterString);
         } else {
@@ -271,13 +271,13 @@ public class ElementBuilderProcessor extends BaseProcessor {
 
             if (hasComplexParams && isSetter) {
                 substitutedVariant.addCode(CodeBlock.builder()
-                        .addStatement("$N($L)", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name) ? it.name + ".get()" : it.name).collect(Collectors.joining(", ")))
+                        .addStatement("$N($L)", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name()) ? it.name() + ".get()" : it.name()).collect(Collectors.joining(", ")))
                         .build()
                 );
             } else {
                 var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID && relevantExtension.isEmpty();
                 substitutedVariant.addCode(CodeBlock.builder()
-                        .addStatement("$L$N($L)", hasReturn ? "return " : "", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name) ? it.name + ".get()" : it.name).collect(Collectors.joining(", ")))
+                        .addStatement("$L$N($L)", hasReturn ? "return " : "", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name()) ? it.name() + ".get()" : it.name()).collect(Collectors.joining(", ")))
                         .build()
                 );
             }
@@ -285,7 +285,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
 
 
         forwardMethod.addParameters(params);
-        final var parameters = params.stream().map(it -> it.name).collect(Collectors.joining(", "));
+        final var parameters = params.stream().map(ParameterSpec::name).collect(Collectors.joining(", "));
         var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID;
         var extensionInvocation = relevantExtension.map(extension -> CodeBlock.builder()
                 .addStatement("$T.$N($N, $N, $L)",
