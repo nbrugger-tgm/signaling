@@ -2,7 +2,7 @@ package eu.nitonfx.signaling.processors.reactiveproxy;
 
 import com.google.auto.service.AutoService;
 import com.niton.compile.processor.BaseProcessor;
-import com.squareup.javapoet.*;
+import com.palantir.javapoet.*;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.Signal;
 
@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 public class ReactiveProxyProcessor extends BaseProcessor {
     private final List<ReactiveImpl> impls = new ArrayList<>();
         record ReactiveImpl(TypeName impl, TypeName init){}
+
     @Override
     public boolean performProcessing(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
         impls.addAll(roundEnvironment.getElementsAnnotatedWith(Reactive.class).stream().map(this::process).toList());
@@ -152,7 +153,7 @@ public class ReactiveProxyProcessor extends BaseProcessor {
                 implementation.addMethod(MethodSpec.methodBuilder(field.setter.getSimpleName().toString())
                         .addModifiers(Modifier.FINAL, Modifier.PUBLIC)
                         .addParameter(param)
-                        .addStatement("this.$N.set($N)", field.name, param.name)
+                        .addStatement("this.$N.set($N)", field.name, param.name())
                         .build()
                 );
             }
@@ -176,11 +177,11 @@ public class ReactiveProxyProcessor extends BaseProcessor {
         implementation.addMethod(nullCtor.build());
 
 
-        final var pck = elementUtils().getPackageOf(typeElement).getQualifiedName().toString();
+        var pck = elementUtils().getPackageOf(typeElement).getQualifiedName().toString();
         var initRecordName = createInitRecord(typeElement, fields, pck);
 
 
-        final var initCtor = MethodSpec.constructorBuilder()
+        var initCtor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.get(Context.class), "cx")
                 .addParameter(initRecordName, "init");
@@ -192,7 +193,7 @@ public class ReactiveProxyProcessor extends BaseProcessor {
 
         final var implementationClass = implementation.build();
         writeClass(pck, implementationClass);
-        var implName = ClassName.get(pck, implementationClass.name);
+        var implName = ClassName.get(pck, implementationClass.name());
         return new ReactiveImpl(implName, initRecordName);
     }
 
@@ -209,7 +210,7 @@ public class ReactiveProxyProcessor extends BaseProcessor {
         initRecord.addMethod(initRecordCtor.build());
 
         var initRecordClass = initRecord.build();
-        var initRecordName = ClassName.get(pck, initRecordClass.name);
+        var initRecordName = ClassName.get(pck, initRecordClass.name());
         writeClass(pck, initRecordClass);
         return initRecordName;
     }
