@@ -3,43 +3,36 @@ package eu.niton.signaling;
 import eu.nitonfx.signaling.api.Context;
 import eu.nitonfx.signaling.api.ListSignal;
 import eu.nitonfx.signaling.api.Signal;
-import eu.nitonfx.signaling.api.SignalLike;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class App {
     private static final Context cx = Context.create();
-    private static   int i = 0;
+
     public static void main(String[] args) {
-        cx.createEffect(()->{
-            JFrame frame = new JFrame("App");
-            frame.getContentPane().add(app());
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(800, 450);
-            frame.setVisible(true);
-        });
+        JFrame frame = new JFrame("App");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 450);
+        frame.setVisible(true);
+        frame.getContentPane().add(app());
     }
 
-    private record TodoItem(String text, boolean done) { }
-
     private static JPanel app() {
-        var todos = cx.createSignal(new TodoItem[0]);
+        var todos = cx.<TodoItem>createListSignal();
         final var pane = new JPanel();
         pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
         var label = new JLabel();
         cx.createEffect(() -> label.setText(todos.size() + " TODOs"));
         pane.add(label);
-
-        var adder = todoInput(todos);
-        pane.add(adder);
-
-        var todoList = todoList(todos);
-       pane.add(todoList);
+        pane.add(todoInput(todos));
+        pane.add(todoList(todos));
 
         return pane;
     }
+
     private static JPanel todoList(ListSignal<TodoItem> todos) {
         var pane = new JPanel();
         pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
@@ -51,18 +44,19 @@ public class App {
         var item = new JPanel();
         var label = new JLabel();
         var checkbox = new JCheckBox();
-        cx.createEffect(()->{
-            checkbox.setSelected(todo.get().done());
-            label.setText(todo.get().text());
-            label.setEnabled(!todo.get().done());
+        cx.createEffect(() -> {
+            var todoItem = todo.get();
+            cx.createEffect(() -> checkbox.setSelected(todoItem.isDone()));
+            cx.createEffect(() -> label.setText(todoItem.getText()));
+            cx.createEffect(() -> label.setEnabled(!todoItem.isDone()));
         });
-        checkbox.addActionListener(e -> todo.set(new TodoItem(todo.get().text(), checkbox.isSelected())));
+        checkbox.addActionListener(e -> todo.get().done.set(checkbox.isSelected()));
         item.add(checkbox);
         item.add(label);
         return item;
     }
 
-    private static JPanel todoInput(ListSignal<TodoItem> todos) {
+    private static JPanel todoInput(List<TodoItem> todos) {
         var pane = new JPanel();
         var input = new JTextField();
         input.setColumns(20);
@@ -73,20 +67,35 @@ public class App {
         return pane;
     }
 
-    private static<T extends JComponent> void insert(Supplier<T> element, JComponent parent) {
-        cx.createEffect(()->{
+    private static <T extends JComponent> void insert(Supplier<T> element, JComponent parent) {
+        cx.createEffect(() -> {
             var base = element.get();
             parent.add(base);
             parent.validate();
-            cx.cleanup(()->parent.remove(base));
+            cx.cleanup(() -> parent.remove(base));
         });
     }
-    private static<T,E extends JComponent> void insert(ListSignal<T> elements, Function<SignalLike<T>,E> mapper, JComponent parent) {
-        cx.createEffect(()-> {
+
+    private static <T, E extends JComponent> void insert(ListSignal<T> elements, Function<Signal<T>, E> mapper, JComponent parent) {
+        cx.createEffect(() -> {
             for (int i = 0; i < elements.size(); i++) {
                 var elem = elements.getSignal(i);
                 insert(() -> mapper.apply(elem), parent);
             }
         });
+    }
+
+    private record TodoItem(Signal<String> text, Signal<Boolean> done) {
+        TodoItem(String text, boolean done){
+            this(cx.createSignal(text), cx.createSignal(done));
+        }
+
+        public boolean isDone() {
+            return done.get();
+        }
+
+        public String getText() {
+            return text.get();
+        }
     }
 }

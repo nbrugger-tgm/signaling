@@ -1,5 +1,6 @@
 package eu.nitonfx.signaling;
 
+import eu.nitonfx.signaling.api.Memo;
 import eu.nitonfx.signaling.api.Signal;
 import eu.nitonfx.signaling.api.SignalLike;
 import eu.nitonfx.signaling.api.Subscription;
@@ -12,7 +13,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class DerivedSignal<T> implements SignalLike<T> {
+public class DerivedSignal<T> implements SignalLike<T>, Memo<T> {
     private final Supplier<T> function;
     private final Consumer<SignalLike<T>> onReadListener;
     private final Function<Runnable, EffectCapture> captureFunction;
@@ -58,7 +59,7 @@ public class DerivedSignal<T> implements SignalLike<T> {
     public T getUntracked() {
         if (!initialized) recalculate();
         else if (isDirty() && dirtyDependencies.stream().anyMatch(Dependency::isChanged)) recalculate();
-        else dirtyDependencies.clear();
+        else dirtyDependencies.clear(); //Dependencies did not chance so don't need to be marked dirty anymore
 
         return cache;
     }
@@ -71,7 +72,7 @@ public class DerivedSignal<T> implements SignalLike<T> {
         subscriptions = capture.dependencies().stream().map(Dependency::new)
                 .<Subscription>mapMulti((dep, next) -> {
                     next.accept(dep.signal.propagateDirty((__) -> markDirty(dep)));
-                    next.accept(dep.signal.onDirtyEffect((__) -> queueDependeants(dep)));
+                    next.accept(dep.signal.onDirtyEffect((__) -> queueDependeants()));
                 })
                 .collect(Collectors.toSet());
         if (!capture.cleanup().isEmpty())
@@ -82,7 +83,7 @@ public class DerivedSignal<T> implements SignalLike<T> {
             throw new UnsupportedOperationException("side effects in derived signal (%s): %s".formatted(this, capture.nestedEffects()));
     }
 
-    private void queueDependeants(Dependency<?> dep) {
+    private void queueDependeants() {
         changeCallback.accept(() -> onDirtyEffects.stream().map(
                 c -> (Runnable) () -> c.accept(this)
         ).collect(Collectors.toSet()));
@@ -115,6 +116,18 @@ public class DerivedSignal<T> implements SignalLike<T> {
         return "DerivedSignal { value = %s, clean = %s } %s".formatted(
                 cache, !isDirty(), origin
         );
+    }
+
+    /**
+     * Recomputes the value even if no input signal changed.
+     * <p>
+     * Do not call in an effect
+     */
+    @Override
+    public void recompute() {
+        recalculate();
+        onDirtyPropagators.forEach(c -> c.accept(this));
+        queueDependeants();
     }
 
     private record Dependency<T>(

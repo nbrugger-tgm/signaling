@@ -23,7 +23,7 @@ public interface Context {
     <T> SetSignal<T> createSignal(Set<T> initial);
     <K,V> MapSignal<K,V> createSignal(Map<K,V> initial);
 
-    <T> Supplier<T> createMemo(@NotNull Supplier<T> function);
+    <T> Memo<T> createMemo(@NotNull Supplier<T> function);
 
     <T> T untracked(@NotNull Supplier<T> function);
 
@@ -34,4 +34,6 @@ public interface Context {
     void untracked(Runnable effect);
 
     void run(Runnable effect);
+
+    <T> ListSignal<T> createListSignal();
 }

@@ -83,7 +83,7 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public <T> Supplier<T> createMemo(@NotNull Supplier<T> function) {
+    public <T> Memo<T> createMemo(@NotNull Supplier<T> function) {
         var creationEffect = recording;
         return new DerivedSignal<>(
                 getParentStackElement(),
@@ -191,5 +191,10 @@ public class SetStackContext implements Context {
         capture.nestedEffects().forEach(this::run);
         capture.flatDeferredEffects().forEach(this::run);
         if (!capture.cleanup().isEmpty()) throw new IllegalStateException("Cleanup was called outside of an effect!");
+    }
+
+    @Override
+    public <T> ListSignal<T> createListSignal() {
+        return new ArraySignalList<>(this, getParentStackElement());
     }
 }

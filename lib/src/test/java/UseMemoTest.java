@@ -139,4 +139,21 @@ public class UseMemoTest {
         signal.set(3);
         verify(consumer).accept("odd");
     }
+
+    @Test
+    void residualMemos(){
+        var cx = Context.create();
+        var signal = cx.createSignal(0);
+        cx.run(()->{
+            var memo = cx.createMemo(()-> {
+                System.out.println("calling memo");
+                return signal.get() * 2;
+            });
+            System.out.println(memo.get());
+        });
+        signal.set(2);
+        signal.set(3);
+        cx.run(()->signal.set(4));
+        cx.createEffect(()->signal.set(5));
+    }
 }
