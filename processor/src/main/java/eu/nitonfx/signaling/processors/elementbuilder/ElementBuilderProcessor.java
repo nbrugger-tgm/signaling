@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import com.niton.compile.processor.BaseProcessor;
 import com.palantir.javapoet.*;
 import eu.nitonfx.signaling.api.Context;
+import eu.nitonfx.signaling.api.EffectHandle;
 
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -59,6 +60,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
                 .map(cls -> (TypeMirror) cls.getValue())
                 .map(cls -> (TypeElement) typeUtils().asElement(cls))
                 .toList();
+        verifyExtensions(extensions);
         var builderClasses = classesToReactify.stream()
                 .collect(Collectors.toMap(
                         it -> it.getSimpleName().toString(),
@@ -67,6 +69,51 @@ public class ElementBuilderProcessor extends BaseProcessor {
         var aggregatorClassname = (String) getAnnotationValue(config, "aggregatorClassname").getValue();
         if (!aggregatorClassname.equals(ReactiveBuilder.NO_AGGREGATOR)) {
             generateAggregator(pack, aggregatorClassname, builderClasses);
+        }
+    }
+
+    private void verifyExtensions(List<TypeElement> extensionClasses) {
+        for (var extension : (Iterable<ExecutableElement>) extensionClasses.stream().flatMap(it -> ElementFilter.methodsIn(it.getEnclosedElements()).stream())::iterator) {
+            verifyExtension(extension);
+        }
+    }
+
+    private void verifyExtension(ExecutableElement extension) {
+        var additionalParamCount = 2;//context, element
+        if (extension.getParameters().size() < additionalParamCount) {
+            logger.fail(extension, "Extensions must have at least " + additionalParamCount + " parameters (Context and element)");
+            return;
+        }
+        var targetParameter = extension.getParameters().get(1);
+        var targetClass = typeUtils().asElement(targetParameter.asType());
+        if (!targetClass.getKind().isDeclaredType()) {
+            logger.fail(targetParameter, "The 2nd parameter of the extension must be a receiver type (either interface or class)");
+            return;
+        }
+        var matchingMethods = getAllMethods((TypeElement) targetClass)
+                .filter(it -> it.getSimpleName().contentEquals(extension.getSimpleName()))
+                .filter(it -> extension.getParameters().size() - additionalParamCount == it.getParameters().size())
+                .filter(it -> {
+                    for (var i = additionalParamCount; i < extension.getParameters().size(); i++) {
+                        var inExtension = extension.getParameters().get(i);
+                        var actual = it.getParameters().get(i - additionalParamCount);
+                        var extensionType = typeUtils().erasure(inExtension.asType());
+                        var actualType = typeUtils().erasure(actual.asType());
+                        var matching = typeUtils().isSameType(extensionType, actualType);
+                        if (!matching) return false;
+                    }
+                    return true;
+                }).toList();
+        var targetSignature = "%s.%s(%s)".formatted(
+                ((TypeElement) targetClass).getQualifiedName(),
+                extension.getSimpleName(),
+                extension.getParameters().subList(2, extension.getParameters().size()).stream()
+                        .map(it -> it.asType().toString()).collect(Collectors.joining(", "))
+        );
+        if (matchingMethods.isEmpty()) {
+            logger.fail(extension, "No method found for extension: %s".formatted(targetSignature));
+        } else if (matchingMethods.size() > 1) {
+            logger.fail(extension, "Multiple methods found for extension: %s: %s".formatted(targetSignature, matchingMethods));
         }
     }
 
@@ -101,42 +148,41 @@ public class ElementBuilderProcessor extends BaseProcessor {
         writeClass(pack.toString(), aggregatorClass.build());
     }
 
+    /**
+     * @param extensions methods provided by the user to overwrite generated Builder methods. If a matching signature is found no implementation should be generated and the user provided method should be forwarded to
+     */
     private TypeSpec generateReactiveBuilder(String pack, TypeElement baseClass, List<TypeElement> toSubstitute, List<TypeElement> extensions) {
         var generics = baseClass.getTypeParameters().stream().map(TypeVariableName::get).toList();
         var baseClassName = generics.isEmpty() ? ClassName.get(baseClass) : ParameterizedTypeName.get(ClassName.get(baseClass), generics.toArray(TypeVariableName[]::new));
+
         var builderClass = TypeSpec.classBuilder(getReactiveBuilderName(baseClass))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Element.class), ClassName.get(baseClass)))
                 .addTypeVariables(generics);
+
         var cx = FieldSpec.builder(ClassName.get(Context.class), "cx", Modifier.PRIVATE, Modifier.FINAL).build();
         builderClass.addField(cx);
         var element = FieldSpec.builder(baseClassName, "element", Modifier.PRIVATE, Modifier.FINAL).build();
         builderClass.addField(element);
 
-        var parameterless = ElementFilter.constructorsIn(baseClass.getEnclosedElements()).stream()
+        var hasParameterlessCtor = ElementFilter.constructorsIn(baseClass.getEnclosedElements()).stream()
                 .anyMatch(e -> e.getParameters().isEmpty());
-        if (parameterless) {
-            builderClass.addMethod(MethodSpec.constructorBuilder()
-                    .addParameter(ClassName.get(Context.class), "cx")
-                    .addCode("this.element = new $T();", baseClass)
-                    .addCode("this.cx = cx;")
-                    .build());
+        if (hasParameterlessCtor) {
+            addParameterlessCtor(builderClass, baseClass);
         }
-        builderClass.addMethod(MethodSpec.constructorBuilder()
-                .addParameter(ClassName.get(Context.class), "cx")
-                .addParameter(baseClassName, "element")
-                .addStatement("this.element = element")
-                .addStatement("this.cx = cx")
-                .build());
+        addWrappingCtor(builderClass, baseClassName);
 
         var methods = getAllMethods(baseClass)
                 .filter(e -> e.getModifiers().contains(Modifier.PUBLIC))
-                .filter(e -> !((TypeElement) e.getEnclosingElement()).getQualifiedName().contentEquals(Object.class.getCanonicalName()))
+                .filter(e -> !isMethodOf(e, Object.class))
                 .toList();
 
         record MethodConflict(String name, int params) {
         }
 
+        //Methods that share the same name and parameter count
+        //This is problematic because parameters will be wrapped in SignalLike<T> which is erased to SignalLike,
+        //which would cause conflicting method signature
         var conflictingMethods = methods.stream()
                 .collect(Collectors.groupingBy(e -> new MethodConflict(e.getSimpleName().toString(), e.getParameters().size())))
                 .entrySet()
@@ -144,6 +190,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
                 .filter(e -> e.getValue().size() > 1)
                 .flatMap(it -> it.getValue().stream())
                 .toList();
+
         methods.stream()
                 .flatMap(method -> reactiveMethods(cx, element, method, conflictingMethods.contains(method), toSubstitute, extensions))
                 .forEach(builderClass::addMethod);
@@ -159,11 +206,41 @@ public class ElementBuilderProcessor extends BaseProcessor {
         return built;
     }
 
+    private static boolean isMethodOf(ExecutableElement e, Class<?> clazz) {
+        return ((TypeElement) e.getEnclosingElement()).getQualifiedName().contentEquals(clazz.getCanonicalName());
+    }
+
+    private static void addWrappingCtor(TypeSpec.Builder builderClass, TypeName baseClassName) {
+        builderClass.addMethod(MethodSpec.constructorBuilder()
+                .addParameter(ClassName.get(Context.class), "cx")
+                .addParameter(baseClassName, "element")
+                .addStatement("this.element = element")
+                .addStatement("this.cx = cx")
+                .build());
+    }
+
+    private static void addParameterlessCtor(TypeSpec.Builder builderClass, TypeElement baseClass) {
+        builderClass.addMethod(MethodSpec.constructorBuilder()
+                .addParameter(ClassName.get(Context.class), "cx")
+                .addCode("this.element = new $T();", baseClass)
+                .addCode("this.cx = cx;")
+                .build());
+    }
+
     private Stream<ExecutableElement> getAllMethods(TypeElement baseClass) {
         return ElementFilter.methodsIn(processingEnv.getElementUtils().getAllMembers(baseClass)).stream();
     }
 
-    private Stream<MethodSpec> reactiveMethods(FieldSpec cx, FieldSpec element, ExecutableElement method, boolean distinguish, List<TypeElement> toSubstitute, List<TypeElement> extensions) {
+
+    /**
+     * Creates 1..N method variations of a given method that are reative
+     *
+     * @param wrappedElementField the field that the generated methods will forward the calls to in the end
+     * @param method              the method to create the variations of
+     * @param distinguish         do the method needs special distinct names to prevent signature clashes
+     * @param extensions          methods provided by the user to overwrite generated Builder methods. If a matching signature is found no implementation should be generated and the user provided method should be forwarded to
+     */
+    private Stream<MethodSpec> reactiveMethods(FieldSpec cx, FieldSpec wrappedElementField, ExecutableElement method, boolean distinguish,  List<TypeElement> toSubstitute,List<TypeElement> extensions) {
         var complexParams = method.getParameters().stream()
                 .filter(Predicate.not(e -> isPrimitive(e.asType())))
                 .toList();
@@ -171,12 +248,9 @@ public class ElementBuilderProcessor extends BaseProcessor {
         Optional<ExecutableElement> relevantExtension = findMatchingExtension(extensions, method);
         var methods = new ArrayList<MethodSpec>(3);
         var isSetter = method.getSimpleName().toString().startsWith("set");
-        forwardingMethods(cx, element, method, !complexParams.isEmpty(), isSetter, toSubstitute, relevantExtension).forEach(methods::add);
+        forwardingMethods(cx, wrappedElementField, method, !complexParams.isEmpty(), isSetter,toSubstitute, relevantExtension).forEach(methods::add);
         if (isSetter) {
-            methods.add(reactiveMethod(cx, element, method, distinguish, relevantExtension.isPresent()));
-        }
-        if (!complexParams.isEmpty()) {
-            //special complex handling
+            methods.add(reactiveMethod(cx, wrappedElementField, method, distinguish, relevantExtension.isPresent()));
         }
 
         return methods.stream();
@@ -184,6 +258,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
 
     private Optional<ExecutableElement> findMatchingExtension(List<TypeElement> extensions, ExecutableElement method) {
         final var additionalParamCount = 2;//context, element
+
         return extensions.stream().flatMap(it -> ElementFilter.methodsIn(it.getEnclosedElements()).stream())
                 .filter(it -> it.getSimpleName().contentEquals(method.getSimpleName()))
                 .filter(it -> typeUtils().isAssignable(method.getEnclosingElement().asType(), typeUtils().erasure(it.getParameters().get(1).asType())))
@@ -202,7 +277,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
                 .findFirst();
     }
 
-    private MethodSpec reactiveMethod(FieldSpec cx, FieldSpec element, ExecutableElement method, boolean distinguish, boolean hasExtension) {
+    private MethodSpec reactiveMethod(FieldSpec cx, FieldSpec wrappedElementField, ExecutableElement method, boolean distinguish, boolean hasExtension) {
         String qualifier = distinguish ? method.getParameters().stream()
                 .map(it -> {
                     var type = it.asType();
@@ -214,7 +289,7 @@ public class ElementBuilderProcessor extends BaseProcessor {
                 .collect(Collectors.joining("")) : "";
         var forwardMethod = MethodSpec.methodBuilder(method.getSimpleName().toString() + qualifier);
         forwardMethod.addModifiers(Modifier.PUBLIC);
-        forwardMethod.returns(TypeName.VOID);
+        forwardMethod.returns(ClassName.get(EffectHandle.class));
         forwardMethod.addExceptions(method.getThrownTypes().stream().map(TypeName::get).toList());
         forwardMethod.addTypeVariables(method.getTypeParameters().stream().map(TypeVariableName::get).toList());
         var params = method.getParameters().stream().map(param -> {
@@ -225,9 +300,9 @@ public class ElementBuilderProcessor extends BaseProcessor {
 
         final var parameterString = params.stream().map(it -> it.name() + ".get()").collect(Collectors.joining(", "));
         if (hasExtension) {
-            forwardMethod.addStatement("$N.createEffect(() -> $N($L))", cx, method.getSimpleName(), parameterString);
+            forwardMethod.addStatement("return $N.createEffect(() -> $N($L))", cx, method.getSimpleName(), parameterString);
         } else {
-            forwardMethod.addStatement("$N.createEffect(() -> $N.$N($L))", cx, element, method.getSimpleName(), parameterString);
+            forwardMethod.addStatement("return $N.createEffect(() -> $N.$N($L))", cx, wrappedElementField, method.getSimpleName(), parameterString);
         }
 
         return forwardMethod.build();
@@ -248,71 +323,79 @@ public class ElementBuilderProcessor extends BaseProcessor {
     }
 
 
-    private Stream<MethodSpec> forwardingMethods(FieldSpec cx, FieldSpec element, ExecutableElement method, boolean hasComplexParams, boolean isSetter, List<TypeElement> toSubstitute, Optional<ExecutableElement> relevantExtension) {
+    private Stream<MethodSpec> forwardingMethods(FieldSpec cx, FieldSpec wrappedObjectField, ExecutableElement method, boolean hasComplexParams, boolean isSetter, List<TypeElement> toSubstitute, Optional<ExecutableElement> relevantExtension) {
         var params = method.getParameters().stream().map(ParameterSpec::get).toList();
-        var forwardMethod = MethodSpec.methodBuilder(method.getSimpleName().toString());
-        forwardMethod.addModifiers(Modifier.PUBLIC);
-        if (isSetter || relevantExtension.isPresent()) forwardMethod.returns(TypeName.VOID);
-        else forwardMethod.returns(TypeName.get(method.getReturnType()));
+        var forwardMethod = MethodSpec.methodBuilder(method.getSimpleName().toString())
+                .addModifiers(Modifier.PUBLIC);
+
         forwardMethod.addExceptions(method.getThrownTypes().stream().map(TypeName::get).toList());
         forwardMethod.addTypeVariables(method.getTypeParameters().stream().map(TypeVariableName::get).toList());
 
-        var requiresSubstitution = method.getParameters().stream().filter(p -> {
-            return toSubstitute.stream().anyMatch(subst -> typeUtils().isAssignable(subst.asType(), p.asType()));
-        }).map(it -> it.getSimpleName().toString()).toList();
-        var substitutedVariant = !requiresSubstitution.isEmpty() ? forwardMethod.build().toBuilder() : null;
-        if (!requiresSubstitution.isEmpty()) {
-            substitutedVariant.addParameters(method.getParameters().stream().map(param -> {
-                if (!requiresSubstitution.contains(param.getSimpleName().toString())) return ParameterSpec.get(param);
-                var wildcardType = WildcardTypeName.subtypeOf(TypeName.get(param.asType()));
-                var reactiveSubst = ParameterizedTypeName.get(ClassName.get(Element.class), wildcardType);
-                return ParameterSpec.builder(reactiveSubst, param.getSimpleName().toString()).build();
-            }).toList());
 
-            if (hasComplexParams && isSetter) {
-                substitutedVariant.addCode(CodeBlock.builder()
-                        .addStatement("$N($L)", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name()) ? it.name() + ".get()" : it.name()).collect(Collectors.joining(", ")))
-                        .build()
-                );
-            } else {
-                var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID && relevantExtension.isEmpty();
-                substitutedVariant.addCode(CodeBlock.builder()
-                        .addStatement("$L$N($L)", hasReturn ? "return " : "", method.getSimpleName(), params.stream().map(it -> requiresSubstitution.contains(it.name()) ? it.name() + ".get()" : it.name()).collect(Collectors.joining(", ")))
-                        .build()
-                );
-            }
-        }
-
-
-        forwardMethod.addParameters(params);
-        final var parameters = params.stream().map(ParameterSpec::name).collect(Collectors.joining(", "));
-        var hasReturn = !isSetter && method.getReturnType().getKind() != TypeKind.VOID;
-        var extensionInvocation = relevantExtension.map(extension -> CodeBlock.builder()
-                .addStatement("$T.$N($N, $N, $L)",
-                        extension.getEnclosingElement().asType(), extension.getSimpleName(), cx, element, parameters)
-                .build()
-        );
+        //The parameters formatted to a string that can be used inside parentheses in method calls
+        var callParameters = params.stream().map(ParameterSpec::name).collect(Collectors.joining(", "));
         var directInvocation = CodeBlock.builder().addStatement("$L$N.$N($L)",
-                hasReturn ? "return " : "",
-                element,
+                method.getReturnType().getKind() != TypeKind.VOID ? "return " : "",
+                wrappedObjectField,
                 method.getSimpleName(),
-                parameters
+                callParameters
         ).build();
-        if(extensionInvocation.isPresent()) {
-            forwardMethod.addCode(extensionInvocation.get());
+        CodeBlock body;
+        TypeName returnType;
+        if (relevantExtension.isPresent()) {
+            var extension = relevantExtension.get();
+            returnType = TypeName.get(extension.getReturnType());
+            body = CodeBlock.builder()
+                    .addStatement("$L$T.$N($N, $N, $L)",
+                            extension.getReturnType().getKind() != TypeKind.VOID ? "return " : "",
+                            extension.getEnclosingElement().asType(), extension.getSimpleName(), cx, wrappedObjectField, callParameters)
+                    .build();
         } else if (hasComplexParams && isSetter) {
-            final var createEffectInvocation = CodeBlock.builder()
-                    .add("$N.createEffect(", cx)
+            returnType = ClassName.get(EffectHandle.class);
+            body = CodeBlock.builder()
+                    .add("return $N.createEffect(", cx)
                     .beginControlFlow("()->")
-                        .add(directInvocation)
+                    .add(directInvocation)
                     .endControlFlow()
                     .add(");")
                     .build();
-            forwardMethod.addCode(createEffectInvocation);
         } else {
-            forwardMethod.addCode(directInvocation);
+            returnType = TypeName.get(method.getReturnType());
+            body = directInvocation;
         }
+        forwardMethod.returns(returnType);
+        var substitutedVariant = substitutedForwardingMethod(method, returnType != TypeName.VOID, toSubstitute, forwardMethod, params);
+        forwardMethod.addParameters(params);
+        forwardMethod.addCode(body);
+
         return Stream.of(forwardMethod, substitutedVariant).filter(Objects::nonNull).map(MethodSpec.Builder::build);
+    }
+
+    private MethodSpec.Builder substitutedForwardingMethod(ExecutableElement method, boolean hasReturn, List<TypeElement> toSubstitute, MethodSpec.Builder forwardMethod, List<ParameterSpec> params) {
+        //parameter names whose types should be replaced with builders
+        var parameterNamesToSubstitute = method.getParameters().stream().filter(p -> {
+            return toSubstitute.stream().anyMatch(subst -> typeUtils().isAssignable(subst.asType(), p.asType()));
+        }).map(it -> it.getSimpleName().toString()).collect(Collectors.toSet());
+        if (!parameterNamesToSubstitute.isEmpty()) {
+            var substitutedParams = substituteWithBuilderParameters(method.getParameters().stream(), parameterNamesToSubstitute).toList();
+            return forwardMethod.build().toBuilder()
+                    .addParameters(substitutedParams)
+                    .addCode(CodeBlock.builder()
+                    .addStatement("$L$N($L)", hasReturn ? "return " : "", method.getSimpleName(), params.stream().map(it -> parameterNamesToSubstitute.contains(it.name()) ? it.name() + ".get()" : it.name()).collect(Collectors.joining(", ")))
+                    .build()
+            );
+        }
+        return null;
+    }
+
+    private static Stream<ParameterSpec> substituteWithBuilderParameters(Stream<? extends VariableElement> parameters, Collection<String> paramsToSubstitute) {
+        return parameters.map(param -> {
+            if (!paramsToSubstitute.contains(param.getSimpleName().toString())) return ParameterSpec.get(param);
+
+            var wildcardType = WildcardTypeName.subtypeOf(TypeName.get(param.asType()));
+            var reactiveSubst = ParameterizedTypeName.get(ClassName.get(Element.class), wildcardType);
+            return ParameterSpec.builder(reactiveSubst, param.getSimpleName().toString()).build();
+        });
     }
 
     public boolean isPrimitive(
