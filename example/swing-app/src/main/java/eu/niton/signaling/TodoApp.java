@@ -61,7 +61,7 @@ public class TodoApp {
         item.add(checkbox);
 
         var label = jsx.JLabel();
-        label.setText(todo.get().text());
+        label.setText(todo.get()::text);
         label.setEnabled(() -> !todo.get().done());
         item.add(label);
 
