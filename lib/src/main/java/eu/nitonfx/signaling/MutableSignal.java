@@ -21,7 +21,7 @@ class MutableSignal<T> implements Signal<T> {
     private final Consumer<Supplier<Set<Runnable>>> writeCallback;
     private final Consumer<SignalLike<T>> readCallback;
 
-    private final StackTraceElement trace;
+    private String name;
     private T value;
 
     /**
@@ -33,7 +33,6 @@ class MutableSignal<T> implements Signal<T> {
         this.readCallback = readCallback;
         this.writeCallback = writeCallback;
         this.value = value;
-        trace = Thread.currentThread().getStackTrace()[3];
     }
 
     @Override
@@ -54,13 +53,13 @@ class MutableSignal<T> implements Signal<T> {
     }
 
     @Override
-    public T getUntracked() {
-        return value;
+    public String toString() {
+        return "MutableSignal(" + name + ")";
     }
 
     @Override
-    public StackTraceElement getOrigin() {
-        return trace;
+    public T getUntracked() {
+        return value;
     }
 
     @Override
@@ -73,5 +72,13 @@ class MutableSignal<T> implements Signal<T> {
     public Subscription propagateDirty(Consumer<SignalLike<T>> consumer) {
         this.instantObservers.add(consumer);
         return () -> instantObservers.remove(consumer);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

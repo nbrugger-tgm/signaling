@@ -26,13 +26,6 @@ public interface SignalLike<T> extends Supplier<T> {
     T getUntracked();
 
     /**
-     * Returns the origin of the signal, typically used for debugging purposes.
-     *
-     * @return the stack trace element where the signal was created
-     */
-    StackTraceElement getOrigin();
-
-    /**
      * Listen to this signal getting dirty, allowing dependency tracking, delayed execution;
      * this is the preferred mode of listening.
      * {@link #propagateDirty(Consumer)} is an escape hatch to act on dirty immediately without dependency tracking support.

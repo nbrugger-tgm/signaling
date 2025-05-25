@@ -104,10 +104,10 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
             }
         };
         reconcilers.add(reconciler);
-        return ()->{
+        return EffectHandle.of("SetOnAddEffect",()->{
             reconcilers.remove(reconciler);
             handles.forEach(e -> e.handle.cancel());
             handles.clear();
-        };
+        },()->handles.stream().map(it -> "|-"+it).collect(Collectors.joining("\n")));
     }
 }

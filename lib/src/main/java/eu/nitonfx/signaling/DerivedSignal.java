@@ -91,12 +91,6 @@ public class DerivedSignal<T> implements SignalLike<T> {
         return !dirtyDependencies.isEmpty();
     }
 
-
-    @Override
-    public StackTraceElement getOrigin() {
-        return origin;
-    }
-
     @Override
     public Subscription onDirtyEffect(Consumer<SignalLike<T>> effect) {
         this.onDirtyEffects.add(effect);

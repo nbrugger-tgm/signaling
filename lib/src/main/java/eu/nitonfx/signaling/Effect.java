@@ -15,22 +15,37 @@ public class Effect implements Runnable, EffectHandle {
     private final Runnable effect;
     private final Function<Runnable, EffectCapture> capturingExecutor;
     private final Consumer<Effect> effectExecutor;
+    private final Consumer<EffectHandle> postExecuteHook;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
     private Set<Dependency<?>> dependencies = Set.of();
     private List<Effect> nestedEffects = List.of();
     private Predicate<SignalLike<?>> dependencyFilter = (e) -> true;
     private Set<Runnable> cleanup = new HashSet<>();
     private final StackTraceElement trace;
+    private String name = null;
+
+    @Override
+    public String formatAsTree() {
+        return this+"\n"+
+                "    |-Dependencies\n"+
+                dependencies.stream().map(it -> "    |    |-"+it+"\n").collect(Collectors.joining())+
+                "    |-Nested Effects\n"+
+                nestedEffects.stream()
+                        .flatMap(it->Stream.of(("-"+it.formatAsTree()).split("\n")))
+                        .map(it -> "    |    |"+it)
+                        .collect(Collectors.joining("\n"));
+    }
 
     @Override
     public String toString() {
-        return trace.toString();
+        return name != null ? "Effect(%s)".formatted(name) : "Effect from: "+trace.toString();
     }
 
-    public Effect(Runnable effect, Function<Runnable, EffectCapture> capturingExecutor, Consumer<Effect> effectExecutor) {
+    public Effect(Runnable effect, Function<Runnable, EffectCapture> capturingExecutor, Consumer<Effect> effectExecutor, Consumer<EffectHandle> postExecuteHook) {
         this.effect = effect;
         this.capturingExecutor = capturingExecutor;
         this.effectExecutor = effectExecutor;
+        this.postExecuteHook = postExecuteHook;
         this.trace = Thread.currentThread().getStackTrace()[3];
     }
 
@@ -54,6 +69,7 @@ public class Effect implements Runnable, EffectHandle {
         //This is the deferred execution of this effects
         Stream.concat(nestedEffects.stream(),capture.flatDeferredEffects()).forEach(Runnable::run);
         this.nestedEffects = nestedEffects;
+        postExecuteHook.accept(this);
     }
 
     private <T> void runIfDependencyChanged(Dependency<T> dependency) {
@@ -78,4 +94,10 @@ public class Effect implements Runnable, EffectHandle {
     public void cancel() {
         unsubscribe();
     }
+
+    @Override
+    public void name(String name) {
+        this.name = name;
+    }
+
 }

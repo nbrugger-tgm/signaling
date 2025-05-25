@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class SetStackContext implements Context {
@@ -17,6 +18,9 @@ public class SetStackContext implements Context {
     private final Set<Runnable> cleanup = new HashSet<>();
     @Nullable
     private Runnable recording = null;
+    private boolean debugEffects;
+    @Nullable
+    private Consumer<EffectHandle> postEffectHook = null;
 
     /**
      * @param <T> The type of the signal, may not be a specific implementation of a container (ArrayList, HashSet, etc.)
@@ -162,9 +166,15 @@ public class SetStackContext implements Context {
 
     @Override
     public synchronized EffectHandle createEffect(Runnable effect) {
-        var effectWrapper = new Effect(effect, this::runAndCapture, this::runEffect);
+        var effectWrapper = new Effect(effect, this::runAndCapture, this::runEffect, this::postEffect);
         runEffect(effectWrapper);
         return effectWrapper;
+    }
+
+    private void postEffect(EffectHandle effect) {
+        if(this.postEffectHook != null) {
+            this.postEffectHook.accept(effect);
+        }
     }
 
     private void runEffect(Effect effectWrapper) {
@@ -199,15 +209,21 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public void run(Runnable effect) {
+    public Collection<? extends EffectHandle> run(Runnable effect) {
         var capture = runAndCapture(effect);
         capture.nestedEffects().forEach(Effect::run);
         capture.flatDeferredEffects().forEach(this::run);
         if (!capture.cleanup().isEmpty()) throw new IllegalStateException("Cleanup was called outside of an effect!");
+        return  capture.nestedEffects();
     }
 
     @Override
     public <T> ListSignal<T> createListSignal() {
         return new ArraySignalList<>(this, getParentStackElement());
+    }
+
+    @Override
+    public void setPostEffectExecutionHook(Consumer<EffectHandle> hook) {
+        this.postEffectHook = hook;
     }
 }

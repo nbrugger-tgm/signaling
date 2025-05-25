@@ -3,9 +3,11 @@ package eu.nitonfx.signaling.api;
 import eu.nitonfx.signaling.SetStackContext;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -133,12 +135,18 @@ public interface Context {
      * Runs the given effect immediately.
      *
      * @param effect the effect to run
+     * @return
      */
-    void run(Runnable effect);
+    Collection<? extends EffectHandle> run(Runnable effect);
 
     /**
      * @return an empty list signal
      * @param <T> the element type of the list {@link  ListSignal}
      */
     <T> ListSignal<T> createListSignal();
+
+    /**
+     * Registers a hook for debugging purposes that is executed after an effect was executed. The effect handle passed to the hook is the updated effect
+     */
+    void setPostEffectExecutionHook(Consumer<EffectHandle> hook);
 }

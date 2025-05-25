@@ -15,4 +15,9 @@ record Dependency<T>(
     public boolean isChanged() {
         return !Objects.equals(signal.getUntracked(), lastValue);
     }
+
+    @Override
+    public String toString() {
+        return signal.toString();
+    }
 }

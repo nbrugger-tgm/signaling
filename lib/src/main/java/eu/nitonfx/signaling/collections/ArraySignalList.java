@@ -102,11 +102,11 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
             }
         };
         reconcilers.add(reconciler);
-        return ()->{
+        return EffectHandle.of("ListOnAddEffect",()->{
             reconcilers.remove(reconciler);
             handles.forEach(EffectHandle::cancel);
             handles.clear();
-        };
+        },()->handles.stream().map(it -> "|-"+it).collect(Collectors.joining("\n")));
     }
 
     public StackTraceElement getOrigin() {
