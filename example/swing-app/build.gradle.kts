@@ -26,7 +26,7 @@ java {
 }
 
 application {
-    mainClass.set("eu.niton.signaling.App")
+    mainClass.set("eu.niton.signaling.TodoApp")
 }
 
 tasks.test {
