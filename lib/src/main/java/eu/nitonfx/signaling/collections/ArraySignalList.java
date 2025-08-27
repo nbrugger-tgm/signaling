@@ -113,11 +113,23 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
             }
         };
         reconcilers.add(reconciler);
-        return EffectHandle.of("ListOnAddEffect",()->{
+        var name = this.name+".onAdd";
+        var handle = EffectHandle.of(name, () -> {
             reconcilers.remove(reconciler);
             handles.forEach(EffectHandle::cancel);
             handles.clear();
-        },()->handles.stream().map(it -> "|-"+it).collect(Collectors.joining("\n")));
+        }, () -> handles.stream()
+                .flatMap(it-> Stream.of(("-"+it.formatAsTree()).split("\n")))
+                .map(it -> "|"+it)
+                .collect(Collectors.joining("\n")));
+        cx.registerEffect(handle);
+        return handle;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+        size.setName(name+".size");
     }
 
     public StackTraceElement getOrigin() {

@@ -149,4 +149,9 @@ public interface Context {
      * Registers a hook for debugging purposes that is executed after an effect was executed. The effect handle passed to the hook is the updated effect
      */
     void setPostEffectExecutionHook(Consumer<EffectHandle> hook);
+
+    /**
+     * Allows to register a custom effect
+     */
+    void registerEffect(EffectHandle customEffect);
 }
