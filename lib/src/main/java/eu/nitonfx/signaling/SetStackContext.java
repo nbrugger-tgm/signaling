@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 public class SetStackContext implements Context {
     private final Set<Dependency<?>> dependencies = new HashSet<>();
-    private final List<Effect> nestedEffects = new ArrayList<>(3);
+    private final List<EffectHandle> nestedEffects = new ArrayList<>(3);
     private final List<Supplier<Set<Runnable>>> deferredEffects = new ArrayList<>(8);
     private final Set<Runnable> cleanup = new HashSet<>();
     @Nullable
@@ -211,7 +211,9 @@ public class SetStackContext implements Context {
     @Override
     public Collection<? extends EffectHandle> run(Runnable effect) {
         var capture = runAndCapture(effect);
-        capture.nestedEffects().forEach(Effect::run);
+        capture.nestedEffects().forEach(eh -> {
+            if(eh instanceof Effect e) e.run();
+        });
         capture.flatDeferredEffects().forEach(this::run);
         if (!capture.cleanup().isEmpty()) throw new IllegalStateException("Cleanup was called outside of an effect!");
         return  capture.nestedEffects();
@@ -225,5 +227,11 @@ public class SetStackContext implements Context {
     @Override
     public void setPostEffectExecutionHook(Consumer<EffectHandle> hook) {
         this.postEffectHook = hook;
+    }
+
+    @Override
+    public void registerEffect(EffectHandle customEffect) {
+        if(recording != null) nestedEffects.add(customEffect);
+        else throw new IllegalStateException("registerEffect is called outside of running effect");
     }
 }

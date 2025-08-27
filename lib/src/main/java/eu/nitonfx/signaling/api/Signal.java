@@ -32,4 +32,9 @@ public interface Signal<T> extends SignalLike<T>, Consumer<T> {
     default void update(UnaryOperator<T> o){
         set(o.apply(getUntracked()));
     }
+
+    /**
+     * Set a name for debugging purposes
+     */
+    void setName(String name);
 }

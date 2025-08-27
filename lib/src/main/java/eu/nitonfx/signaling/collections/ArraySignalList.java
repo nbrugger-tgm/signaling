@@ -14,6 +14,7 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     private final Signal<Integer> size;
     private final StackTraceElement origin;
     private final List<Reconciler<Signal<T>>> reconcilers = new ArrayList<>();
+    private String name;
 
     private interface Reconciler<T> {
         void onAdd(T element, int index);
@@ -23,6 +24,7 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     public ArraySignalList(Context cx, StackTraceElement origin) {
         this.cx = cx;
         size = cx.createSignal(0);
+        size.setName("ListSignal.size");
         this.origin = origin;
         list = new ListenableList<>(new ArrayList<>(), this::onRemove, this::onAdd, null);
     }
@@ -87,12 +89,18 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
         for (var i = 0; i < list.size(); i++) {
             int index = i;
             final var signal = getSignal(index);
-            handles.add(cx.createEffect(()->consumer.accept(signal, index)));
+            handles.add(cx.untracked(()-> {
+                var effect = cx.createEffect(() -> consumer.accept(signal, index));
+                effect.name(name + ".onAdd[" + index + "]");
+                return effect;
+            }));
         }
         var reconciler = new Reconciler<Signal<T>>() {
             @Override
             public void onAdd(Signal<T> element, int index) {
-                handles.add(index, cx.createEffect(() -> consumer.accept(element, index)));
+                var effect = cx.createEffect(() -> consumer.accept(element, index));
+                effect.name(name + ".onAdd[" + index + "]");
+                handles.add(index, effect);
             }
 
             @Override

@@ -18,7 +18,7 @@ public class Effect implements Runnable, EffectHandle {
     private final Consumer<EffectHandle> postExecuteHook;
     private Set<? extends Subscription> subscriptions = new HashSet<>();
     private Set<Dependency<?>> dependencies = Set.of();
-    private List<Effect> nestedEffects = List.of();
+    private List<? extends EffectHandle> nestedEffects = List.of();
     private Predicate<SignalLike<?>> dependencyFilter = (e) -> true;
     private Set<Runnable> cleanup = new HashSet<>();
     private final StackTraceElement trace;
@@ -27,12 +27,12 @@ public class Effect implements Runnable, EffectHandle {
     @Override
     public String formatAsTree() {
         return this+"\n"+
-                "    |-Dependencies\n"+
-                dependencies.stream().map(it -> "    |    |-"+it+"\n").collect(Collectors.joining())+
-                "    |-Nested Effects\n"+
+                "  |-Dependencies\n"+
+                dependencies.stream().map(it -> "  |  |-"+it+"\n").collect(Collectors.joining())+
+                "  |-Nested Effects\n"+
                 nestedEffects.stream()
                         .flatMap(it->Stream.of(("-"+it.formatAsTree()).split("\n")))
-                        .map(it -> "    |    |"+it)
+                        .map(it -> "     |"+it)
                         .collect(Collectors.joining("\n"));
     }
 
@@ -61,14 +61,18 @@ public class Effect implements Runnable, EffectHandle {
         subscriptions = dependencies.stream()
                 .map(dependency -> dependency.signal().onDirtyEffect((__)->runIfDependencyChanged(dependency)))
                 .collect(Collectors.toSet());
-        var nestedEffects = capture.nestedEffects();
+        var nestedEffectHandles = capture.nestedEffects();
+        var nestedEffects = nestedEffectHandles.stream()
+                .filter(Effect.class::isInstance)
+                .map(Effect.class::cast)
+                .toList();
         final var filterForNestedEffects = dependencyFilter.and(Predicate.not(dep -> dependencySignals.stream().anyMatch(inner -> inner == dep)));
         nestedEffects.forEach(nested -> nested.dependencyFilter = filterForNestedEffects);
 
         //If the effect caused writes to signals, the effects attached to this signals are not run immediately, but deferred to the end of the current effect
         //This is the deferred execution of this effects
         Stream.concat(nestedEffects.stream(),capture.flatDeferredEffects()).forEach(Runnable::run);
-        this.nestedEffects = nestedEffects;
+        this.nestedEffects = nestedEffectHandles;
         postExecuteHook.accept(this);
     }
 
@@ -81,8 +85,8 @@ public class Effect implements Runnable, EffectHandle {
             subscription.unsubscribe();
         }
         subscriptions = Collections.emptySet();
-        for (Effect nestedEffect : nestedEffects) {
-            nestedEffect.unsubscribe();
+        for (EffectHandle nestedEffect : nestedEffects) {
+            nestedEffect.cancel();
         }
         nestedEffects = Collections.emptyList();
 

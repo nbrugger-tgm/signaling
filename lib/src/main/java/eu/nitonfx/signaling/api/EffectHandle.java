@@ -28,7 +28,7 @@ public interface EffectHandle {
 
             @Override
             public String formatAsTree() {
-                return this +"\n"+(childrenTree.get().replace("\n","\n    "));
+                return this +"\n"+(childrenTree.get().replace("\n","\n  "));
             }
         };
     }

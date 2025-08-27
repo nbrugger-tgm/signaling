@@ -20,7 +20,7 @@ public interface ListSignal<T> extends List<T> {
      * @param index the index of the element
      * @return the signal for the element at the specified position
      */
-    Signal<T> getSignal(int index);
+    SignalLike<T> getSignal(int index);
 
     /**
      * @return the list of elements without tracking
@@ -46,4 +46,10 @@ public interface ListSignal<T> extends List<T> {
      * @return a handle to manually cancel all related effects and subscriptions
      */
     EffectHandle onAdd(BiConsumer<SignalLike<T>, Integer> consumer);
+
+
+    /**
+     * Set name for tracking/debugging purposes
+     */
+    void setName(String name);
 }
