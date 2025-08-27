@@ -2,7 +2,7 @@ package eu.nitonfx.signaling.api;
 
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A ListSignal is a reactive list that allows for tracking changes to its elements.
@@ -26,6 +26,14 @@ public interface ListSignal<T> extends List<T> {
      * @return the list of elements without tracking
      */
     List<T> getUntracked();
+
+
+    /**
+     * Creates a mapped read-only projection/view of this list - if the underlying list changes the projection reflects this changes
+     * @return a view of this list mapped to a different type
+     * @param <N> element type of the new list
+     */
+    <N> ListSignal<N> map(Function<T,N> mapper);
 
     /**
      * <p>

@@ -6,7 +6,10 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T> {
     private final List<Signal<T>> list;
@@ -119,5 +122,83 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
 
     public StackTraceElement getOrigin() {
         return origin;
+    }
+
+    @Override
+    public <N> ListSignal<N> map(Function<T, N> mapper) {
+        return new MappedView<>(mapper, this);
+    }
+
+    private static class MappedView<O,N> extends AbstractList<N> implements ListSignal<N>{
+        private final Function<O,N> mapper;
+        private final ListSignal<O> unmapped;
+        private String name;
+        private MappedView(Function<O, N> mapper, ListSignal<O> unmapped) {
+            this.mapper = mapper;
+            this.unmapped = unmapped;
+        }
+
+        private class MappedSignal implements SignalLike<N>{
+            private final SignalLike<O> source;
+
+            private MappedSignal(SignalLike<O> source) {
+                this.source = source;
+            }
+
+            @Override
+            public N get() {
+                return mapper.apply(source.get());
+            }
+
+            @Override
+            public N getUntracked() {
+                return mapper.apply(source.getUntracked());
+            }
+
+            @Override
+            public Subscription onDirtyEffect(Consumer<SignalLike<N>> consumer) {
+                return source.onDirtyEffect(signal -> consumer.accept(this));
+            }
+
+            @Override
+            public Subscription propagateDirty(Consumer<SignalLike<N>> consumer) {
+                return source.propagateDirty(signal -> consumer.accept(this));
+            }
+        }
+
+        @Override
+        public SignalLike<N> getSignal(int index) {
+            return new MappedSignal(unmapped.getSignal(index));
+        }
+
+        @Override
+        public List<N> getUntracked() {
+            return unmapped.getUntracked().stream().map(mapper).collect(Collectors.toList());
+        }
+
+        @Override
+        public EffectHandle onAdd(BiConsumer<SignalLike<N>, Integer> consumer) {
+            return unmapped.onAdd((elem, index) -> consumer.accept(new MappedSignal(elem), index));
+        }
+
+        @Override
+        public <M> ListSignal<M> map(Function<N, M> mapper) {
+            return new MappedView<>(mapper, this);
+        }
+
+        @Override
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public N get(int index) {
+            return mapper.apply(unmapped.get(index));
+        }
+
+        @Override
+        public int size() {
+            return unmapped.size();
+        }
     }
 }
