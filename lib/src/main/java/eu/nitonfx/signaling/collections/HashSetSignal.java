@@ -104,15 +104,17 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
             }
         };
         reconcilers.add(reconciler);
-        return EffectHandle.of("SetOnAddEffect",()->{
         final var effect = EffectHandle.of("SetOnAddEffect", () -> {
             reconcilers.remove(reconciler);
             handles.forEach(e -> e.handle.cancel());
             handles.clear();
-        },()->handles.stream().map(it -> "|-"+it).collect(Collectors.joining("\n")));
         }, () -> handles.stream().map(it -> "|-" + it).collect(Collectors.joining("\n")));
         cx.registerEffect(effect);
         return effect;
     }
+
+    @Override
+    public <N> SetSignal<N> map(Function<E, N> mapper) {
+        return new View<>(mapper);
     }
 }
