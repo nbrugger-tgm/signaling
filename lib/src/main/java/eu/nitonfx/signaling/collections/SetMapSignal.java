@@ -92,10 +92,12 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
             var oldHandle = handles.put(e.getKey(), cx.createEffect(() -> o.accept(e.getKey(), e.value)));
             if(oldHandle != null) oldHandle.cancel();
         });
-        return EffectHandle.of("MapOnPutEffect",()->{
-            handles.forEach((k,e)->e.cancel());
+        var effect = EffectHandle.of("MapOnPutEffect", () -> {
+            handles.forEach((k, e) -> e.cancel());
             handles.clear();
-        }, ()->handles.values().stream().map(it -> "|-"+it).collect(Collectors.joining("\n")));
+        }, () -> handles.values().stream().map(it -> "|-" + it).collect(Collectors.joining("\n")));
+        cx.registerEffect(effect);
+        return effect;
     }
 
     public StackTraceElement getOrigin() {
