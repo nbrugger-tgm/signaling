@@ -2,6 +2,7 @@ package eu.nitonfx.signaling.api;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A SetSignal is a reactive set that allows for tracking changes to its elements.
@@ -22,4 +23,6 @@ public interface SetSignal<E> extends Set<E> {
     Set<E> getUntracked();
 
     EffectHandle onAdd(Consumer<E> o);
+
+    <N> SetSignal<N> map(Function<E, N> mapper);
 }

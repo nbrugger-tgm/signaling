@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -30,7 +31,9 @@ public interface MapSignal<K, V> extends Map<K,V> {
      * @param key a function to provide a key to look up. Should be a {@link SignalLike} or at least be based on one
      * @return a signal that changes when the key or the value the key points to changes
      */
-    Supplier<V> get(Supplier<? extends K> key);
+    SignalLike<V> get(Supplier<? extends K> key);
+
+    <N> MapSignal<K,N> mapValues(Function<V,N> mapper);
 
     /**
      * @return the map of entries without tracking

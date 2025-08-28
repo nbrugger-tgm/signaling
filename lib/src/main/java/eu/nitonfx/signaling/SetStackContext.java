@@ -95,7 +95,7 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public <T> Supplier<T> createMemo(@NotNull Supplier<T> function) {
+    public <T> SignalLike<T> createMemo(@NotNull Supplier<T> function) {
         var creationEffect = recording;
         return new DerivedSignal<>(
                 getParentStackElement(),

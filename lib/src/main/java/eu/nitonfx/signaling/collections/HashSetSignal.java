@@ -1,11 +1,15 @@
 package eu.nitonfx.signaling.collections;
 
-import eu.nitonfx.signaling.Effect;
-import eu.nitonfx.signaling.api.*;
+import eu.nitonfx.signaling.api.Context;
+import eu.nitonfx.signaling.api.EffectHandle;
+import eu.nitonfx.signaling.api.SetSignal;
+import eu.nitonfx.signaling.api.Signal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
@@ -116,5 +120,48 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
     @Override
     public <N> SetSignal<N> map(Function<E, N> mapper) {
         return new View<>(mapper);
+    }
+    private class View<N> extends AbstractSet<N> implements SetSignal<N> {
+        private final Function<E,N> mapper;
+
+        private View(Function<E, N> mapper) {
+            this.mapper = mapper;
+        }
+
+        @Override
+        public Set<N> getUntracked() {
+            return HashSetSignal.this.getUntracked().stream().map(mapper).collect(Collectors.toUnmodifiableSet());
+        }
+
+        @Override
+        public EffectHandle onAdd(Consumer<N> o) {
+            return HashSetSignal.this.onAdd(b -> o.accept(mapper.apply(b)));
+        }
+
+        @Override
+        public <N1> SetSignal<N1> map(Function<N, N1> mapper) {
+            return new View<>(this.mapper.andThen(mapper));
+        }
+
+        @Override
+        public @NotNull Iterator<N> iterator() {
+            var iter = HashSetSignal.this.iterator();
+            return new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    return iter.hasNext();
+                }
+
+                @Override
+                public N next() {
+                    return mapper.apply(iter.next());
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return HashSetSignal.this.size();
+        }
     }
 }

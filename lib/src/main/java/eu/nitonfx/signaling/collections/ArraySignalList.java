@@ -1,6 +1,8 @@
 package eu.nitonfx.signaling.collections;
 
 import eu.nitonfx.signaling.api.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,6 +78,12 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     }
 
     @Override
+    public Supplier<T> getSignal(Supplier<@NotNull Integer> index) {
+        var signal = cx.createMemo(()->getSignal(index.get()));
+        return ()-> signal.get().get();
+    }
+
+    @Override
     public T set(int index, T element) {
         var signal = getSignal(index);
         var old = signal.getUntracked();
@@ -137,10 +146,12 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     }
 
     @Override
+    @Unmodifiable
     public <N> ListSignal<N> map(Function<T, N> mapper) {
         return new MappedView<>(mapper, this);
     }
 
+    @Unmodifiable
     private static class MappedView<O,N> extends AbstractList<N> implements ListSignal<N>{
         private final Function<O,N> mapper;
         private final ListSignal<O> unmapped;
@@ -184,6 +195,11 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
         }
 
         @Override
+        public Supplier<N> getSignal(Supplier<@NotNull Integer> index) {
+            return ()->mapper.apply(unmapped.getSignal(index).get());
+        }
+
+        @Override
         public List<N> getUntracked() {
             return unmapped.getUntracked().stream().map(mapper).collect(Collectors.toList());
         }
@@ -195,7 +211,7 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
 
         @Override
         public <M> ListSignal<M> map(Function<N, M> mapper) {
-            return new MappedView<>(mapper, this);
+            return new MappedView<>(this.mapper.andThen(mapper), unmapped);
         }
 
         @Override

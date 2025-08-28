@@ -96,7 +96,7 @@ public interface Context {
      * @param <T>      the type of the value
      * @return a Supplier that provides the memoized value
      */
-    <T> Supplier<T> createMemo(@NotNull Supplier<T> function);
+    <T> SignalLike<T> createMemo(@NotNull Supplier<T> function);
 
     /**
      * Executes the given function without tracking its dependencies.

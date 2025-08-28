@@ -1,8 +1,12 @@
 package eu.nitonfx.signaling.api;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
+
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A ListSignal is a reactive list that allows for tracking changes to its elements.
@@ -22,9 +26,12 @@ public interface ListSignal<T> extends List<T> {
      */
     SignalLike<T> getSignal(int index);
 
+    Supplier<T> getSignal(Supplier<@NotNull Integer> index);
+
     /**
      * @return the list of elements without tracking
      */
+    @Unmodifiable
     List<T> getUntracked();
 
 
@@ -33,6 +40,7 @@ public interface ListSignal<T> extends List<T> {
      * @return a view of this list mapped to a different type
      * @param <N> element type of the new list
      */
+    @Unmodifiable
     <N> ListSignal<N> map(Function<T,N> mapper);
 
     /**

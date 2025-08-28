@@ -1,10 +1,12 @@
 package eu.nitonfx.signaling.api;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * A signal is a value that can be subscribed to
+ *
  * @param <T> the type of the value
  */
 public interface SignalLike<T> extends Supplier<T> {
@@ -39,8 +41,41 @@ public interface SignalLike<T> extends Supplier<T> {
      * Listen to the signal getting dirty in real time without delays.
      * This means that delayed execution dependency tracking and deferred execution do not work,
      * using any {@link Context} methods in the callback/listener will cause issues and undefined behavior.
+     *
      * @param consumer a method being called when the signal needs to be read again to make sure its value (didn't) changed.
      * @return an object that can be used to cancel the subscription
      */
     Subscription propagateDirty(Consumer<SignalLike<T>> consumer);
+
+    default <N> SignalLike<N> map(Function<T, N> mapper) {
+        class View<I> implements SignalLike<I>{
+            private final Function<T, I> mapper;
+
+            View(Function<T, I> mapper) {
+                this.mapper = mapper;
+            }
+
+            @Override
+            public I get() {
+                return mapper.apply(SignalLike.this.get());
+            }
+
+            @Override
+            public I getUntracked() {
+                return mapper.apply(SignalLike.this.get());
+            }
+
+            @Override
+            public Subscription onDirtyEffect(Consumer<SignalLike<I>> consumer) {
+                return SignalLike.this.onDirtyEffect(signal -> consumer.accept(this));
+            }
+
+            @Override
+            public Subscription propagateDirty(Consumer<SignalLike<I>> consumer) {
+                return SignalLike.this.propagateDirty(signal -> consumer.accept(this));
+            }
+        }
+        return new View<>(mapper);
+    }
+
 }
