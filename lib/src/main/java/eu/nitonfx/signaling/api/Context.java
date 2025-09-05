@@ -135,9 +135,9 @@ public interface Context {
      * Runs the given effect immediately.
      *
      * @param effect the effect to run
-     * @return
+     * @return a handle to cancel the whole reactive tree
      */
-    Collection<? extends EffectHandle> run(Runnable effect);
+    EffectHandle run(Runnable effect);
 
     /**
      * @return an empty list signal

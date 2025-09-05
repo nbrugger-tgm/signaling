@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class SetStackContext implements Context {
     private final Set<Dependency<?>> dependencies = new HashSet<>();
@@ -209,14 +210,18 @@ public class SetStackContext implements Context {
     }
 
     @Override
-    public Collection<? extends EffectHandle> run(Runnable effect) {
+    public EffectHandle  run(Runnable effect) {
         var capture = runAndCapture(effect);
         capture.nestedEffects().forEach(eh -> {
             if(eh instanceof Effect e) e.run();
         });
         capture.flatDeferredEffects().forEach(this::run);
-        if (!capture.cleanup().isEmpty()) throw new IllegalStateException("Cleanup was called outside of an effect!");
-        return  capture.nestedEffects();
+        return  EffectHandle.of("root", ()->{
+            capture.nestedEffects().forEach(EffectHandle::cancel);
+            capture.cleanup().forEach(Runnable::run);
+        }, ()-> capture.nestedEffects().stream()
+                .map(EffectHandle::formatAsTree)
+                .collect(Collectors.joining("\n")));
     }
 
     @Override
