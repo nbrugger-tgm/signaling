@@ -60,8 +60,11 @@ public class SetStackContext implements Context {
      * @param creationEffect the effect that the signal was created in
      */
     private <T> void onSignalRead(SignalLike<T> subscribable, Runnable creationEffect) {
-        if (recording == null || recording == creationEffect)
+        if (recording == null)
             return;
+        if(recording == creationEffect) {
+            throw new UnsupportedOperationException("Reading a signal in the effect it was created in is a bug");
+        }
         //remove outdated signal dependencies
         //a signal can be read twice in an effect and with the value changing in between reads
         //in such a case only the last read value counts

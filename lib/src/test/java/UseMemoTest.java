@@ -39,11 +39,11 @@ public class UseMemoTest {
         Supplier<String> producer = mock();
         var cx = Context.create();
         cx.run(()-> {
-            var memo = cx.createMemo(()->producer.get());
-            memo.get();
-            memo.get();
-            memo.get();
-            memo.get();
+            var memo = cx.createMemo(producer::get);
+            cx.createEffect(()-> {
+                memo.get();
+                memo.get();
+            });
         });
         verify(producer,times(1)).get();
     }
@@ -58,10 +58,14 @@ public class UseMemoTest {
                 onCalculate.run();
                 return signal.get() * 2;
             });
-            signal.set(2);
-            signal.set(3);
-            signal.set(4);
-            memo.get();
+            cx.createEffect(()-> {
+                signal.set(2);
+                signal.set(3);
+                signal.set(4);
+            });
+            cx.createEffect(()-> {
+                memo.get();
+            });
         });
         verify(onCalculate,times(1)).run();
     }
@@ -75,10 +79,12 @@ public class UseMemoTest {
                 onCalculate.run();
                 return signal.get() * 2;
             });
-            memo.get();
-            signal.set(2);
-            signal.set(3);
-            signal.set(4);
+            memo.getUntracked();
+            cx.createEffect(()->{
+                signal.set(2);
+                signal.set(3);
+                signal.set(4);
+            });
         });
         verify(onCalculate,times(1)).run();
     }
@@ -92,10 +98,13 @@ public class UseMemoTest {
                 onCalculate.run();
                 return signal.get() * 2;
             });
-            memo.get();
-            signal.set(2);
-            memo.get();
+            cx.createEffect(()-> memo.get());
+            cx.createEffect(()->{
+                signal.set(2);
+                signal.set(4);
+            });
         });
+        //once calculated from the initial value (0) and then with the end-result of the change (4)
         verify(onCalculate,times(2)).run();
     }
 
@@ -109,6 +118,7 @@ public class UseMemoTest {
         cx.run(()-> cx.createEffect(()-> consumer.accept(oddString.get())));
         verify(consumer).accept("even");
         signal.set(2);
+        //since oddString doesn't change here the subscribing effect should not be re run
         verifyNoMoreInteractions(consumer);
     }
 
@@ -126,6 +136,7 @@ public class UseMemoTest {
         signal.set(11);
         signal.set(13);
         signal.set(3);
+        //since isOdd never changed to false there was no need to re-run the oddString calc
         verify(stringifyCalc, times(1)).run();
     }
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.*;
 
 public class UseEffectTest {
@@ -363,7 +364,10 @@ public class UseEffectTest {
         cx.createEffect(() -> {
             var count = cx.createSignal(0);
             count.set(5);
-            System.out.println(count.get());
+            assertThatExceptionOfType(UnsupportedOperationException.class)
+                    .as("signals cannot be read in the effect that created them")
+                    .isThrownBy(count::get)
+            ;
         });
     }
 
