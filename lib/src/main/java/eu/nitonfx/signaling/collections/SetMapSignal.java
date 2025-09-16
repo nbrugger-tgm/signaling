@@ -25,7 +25,7 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
     public SetMapSignal(Context cx, Map<K, V> initial, StackTraceElement origin) {
         this.cx = cx;
         this.origin = origin;
-        map = cx.createSignal(initial.entrySet().stream().map(e -> (SignalEntry<K,V>)new DefaultSignalEntry(cx, e)).collect(Collectors.toSet()));
+        map = cx.createSignal(initial.entrySet().stream().map(e -> (SignalEntry<K,V>)new DefaultSignalEntry<>(cx, e)).collect(Collectors.toSet()));
     }
 
     @Override
@@ -35,6 +35,32 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
                 .findFirst()
                 .map(SignalEntry::getValueSignal)
                 .orElse(null);
+    }
+
+    @Override
+    public V remove(Object key) {
+        for (var iter = map.iterator();iter.hasNext();) {
+            var entry = iter.next();
+            if(entry.getKey().equals(key)) {
+                System.out.println("SetMapSignal.remove: found "+entry);
+                iter.remove();
+                return entry.getValueSignal().getUntracked();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean remove(Object key, Object value) {
+        for (var iter = map.iterator();iter.hasNext();) {
+            var entry = iter.next();
+            if(entry.getKey().equals(key)) {
+                System.out.println("SetMapSignal.remove: found "+entry);
+                iter.remove();
+                return entry.getValueSignal().getUntracked();
+            }
+        }
+        return null;
     }
 
     @Override
