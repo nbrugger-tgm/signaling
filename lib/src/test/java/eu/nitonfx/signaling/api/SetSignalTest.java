@@ -1,17 +1,20 @@
 package eu.nitonfx.signaling.api;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -22,11 +25,37 @@ abstract class SetSignalTest {
     void add(SetSignal<String> set,String s) {
         set.add(s);
     }
-    private Context cx;
+    void remove(SetSignal<String> set,String s) {
+        set.remove(s);
+    }
+    protected Context cx;
 
     @BeforeEach
     void setContext(){
         cx = Context.create();
+    }
+
+    @Nested
+    class Size {
+        @Test void isTracked(){
+            var set = init(cx);
+            add(set, "a");
+            add(set, "b");
+            add(set, "c");
+            Consumer<Integer> effect = mock();
+            cx.createEffect(() -> {
+                effect.accept(set.size());
+            });
+            verify(effect, times(1)).accept(3);
+            add(set, "d");
+            verify(effect, times(1)).accept(4);
+            remove(set, "a");
+            verify(effect, times(2)).accept(3);
+            remove(set, "b");
+            verify(effect, times(1)).accept(2);
+            remove(set, "c");
+            verify(effect, times(1)).accept(1);
+        }
     }
 
     @Nested
@@ -39,7 +68,7 @@ abstract class SetSignalTest {
             add(set,"a");
             add(set,"b");
             add(set,"c");
-            assertThat(set.getUntracked()).containsExactlyElementsOf(set);
+            assertThat(set.getUntracked()).containsExactlyInAnyOrderElementsOf(set);
         }
         @Test void shouldNotTrackSizeReads(){
             var set = init(cx);
@@ -154,50 +183,235 @@ abstract class SetSignalTest {
             var iterElems = new HashSet<String>();
             set.untrackedIterator().forEachRemaining(iterElems::add);
 
-            assertThat(iterElems).containsExactlyElementsOf(set);
+            assertThat(iterElems).containsExactlyInAnyOrderElementsOf(set);
         }
     }
     @Nested
     class Iterator {
-        void shouldTrackHasNextInvocation(){}
-        void shouldTrackNextInvocation(){}
-        void shouldNotAllowRemoval(){}
-        void shouldContainSameElements(){}
+        @Test void shouldTrackHasNextInvocation(){
+            var set = init(cx);
+            add(set,"a");
+            Runnable effect = mock();
+            cx.createEffect(()->{
+                set.iterator().hasNext();
+                effect.run();
+            });
+            verify(effect,times(1)).run();
+            reset(effect);
+            add(set,"b");
+            verify(effect,times(1)).run();
+        }
+        @Test void shouldTrackNextInvocation(){
+            var set = init(cx);
+            add(set,"a");
+            Runnable effect = mock();
+            cx.createEffect(()->{
+                set.iterator().next();
+                effect.run();
+            });
+            verify(effect,times(1)).run();
+            reset(effect);
+            add(set,"b");
+            verify(effect,times(1)).run();
+        }
+        @Test void shouldNotAllowRemoval(){
+            var set = init(cx);
+            add(set,"a");
+            var iterator = set.iterator();
+            iterator.hasNext();
+            iterator.next();
+            assertThatExceptionOfType(UnsupportedOperationException.class)
+                    .isThrownBy(iterator::remove);
+        }
+        @Test void shouldContainSameElements(){
+            var set = init(cx);
+            add(set,"a");
+            add(set,"b");
+            add(set,"c");
+
+            var iterItems = new HashSet<String>();
+            set.iterator().forEachRemaining(iterItems::add);
+
+            assertThat(iterItems).containsExactlyInAnyOrderElementsOf(set);
+        }
     }
     @Nested
     class OnAdd {
-        void shouldCallEffectOnNewElementInsertion(){}
-        void shouldCallEffectForExistingElements(){}
-        void shouldCleanAddedItemEffectOnRemoval(){}
-        void shouldCleanAddedItemEffectOnManualCancel(){}
-        void shouldCleanInitialItemEffectOnRemoval(){}
-        void shouldCleanInitialItemEffectOnManualCancel(){}
-        void shouldNotRerunEffectsOfNonModifiedItems(){}
-        void shouldCallEffectWithCorrectElement(){}
+        @Test void shouldCallEffectOnNewElementInsertion(){
+            var set = init(cx);
+            var runnable = mock(Runnable.class);
+            cx.run(()->{
+               set.onAdd((e)->{
+                   runnable.run();
+               });
+            });
+            add(set,"b");
+            verify(runnable,times(1)).run();
+        }
+        @Test void shouldCallEffectForExistingElements(){
+            var set = init(cx);
+            add(set,"a");
+            add(set,"b");
+            var runnable = mock(Runnable.class);
+            cx.run(()->{
+                set.onAdd((e)-> runnable.run());
+            });
+            verify(runnable,times(2)).run();
+
+        }
+        @Test void shouldCleanAddedItemEffectOnRemoval(){
+            var set = init(cx);
+            var runnable = mock(Runnable.class);
+            cx.run(()->{
+                set.onAdd((e)-> cx.cleanup(runnable::run));
+            });
+            add(set,"a");
+            remove(set,"a");
+            verify(runnable,times(1)).run();
+        }
+        @Test void shouldCleanAddedItemEffectOnManualCancel(){
+            var set = init(cx);
+            var runnable = mock(Runnable.class);
+            final EffectHandle[] onAddEffect = new EffectHandle[1];
+            cx.run(()-> {
+                onAddEffect[0] = set.onAdd((e) -> cx.cleanup(runnable::run));
+            });
+            add(set,"a");
+            onAddEffect[0].cancel();
+            verify(runnable, times(1)).run();
+        }
+        @Test void shouldCleanInitialItemEffectOnRemoval(){
+            var set = init(cx);
+            add(set,"a");
+            var runnable = mock(Runnable.class);
+            cx.run(()-> {
+                set.onAdd((e) -> cx.cleanup(runnable::run));
+            });
+            remove(set,"a");
+            verify(runnable, times(1)).run();
+        }
+        @Test void shouldCleanInitialItemEffectOnManualCancel(){
+            var set = init(cx);
+            add(set,"a");
+            EffectHandle[] onAddEffect = new EffectHandle[1];
+            var runnable = mock(Runnable.class);
+            cx.run(()-> {
+                onAddEffect[0] = set.onAdd((e) -> cx.cleanup(runnable));
+            });
+            onAddEffect[0].cancel();
+            verify(runnable, times(1)).run();
+        }
+        @Test void shouldNotRerunEffectsOfNonModifiedItems(){
+            var set = init(cx);
+            add(set,"a");
+            add(set,"b");
+            add(set,"c");
+            Consumer<String> cleanup = mock();
+            Consumer<String> effect = mock();
+            cx.run(()-> {
+                set.onAdd((e) -> {
+                    effect.accept(e);
+                    cx.cleanup(() -> cleanup.accept(e));
+                });
+            });
+            remove(set,"b");
+            verify(cleanup, times(0)).accept("a");
+            verify(cleanup, times(0)).accept("c");
+            verify(effect, times(1)).accept("a");
+            verify(effect, times(1)).accept("c");
+        }
+        @Test void shouldCallEffectWithCorrectElement(){
+            var set = init(cx);
+            add(set,"a");
+            Consumer<String> effect = mock();
+            cx.run(()-> {
+                set.onAdd(effect);
+            });
+            verify(effect, times(1)).accept("a");
+            add(set,"b");
+            verify(effect, times(1)).accept("b");
+        }
     }
 }
+abstract class MappableSignalTest extends SetSignalTest {
+    abstract class MapTest extends SetSignalTest {
 
-class CreateSignal extends SetSignalTest {
-    @Override
-    SetSignal<String> init(Context cx) {
-        return cx.createSignal(Set.of());
-    }
+        private SetSignal<String> parent;
 
-    @Nested
-    class Map extends SetSignalTest {
-        SetSignal<String> parent;
-
-        @Override
-        SetSignal<String> init(Context cx) {
-            parent = CreateSignal.this.init(cx);
-            return parent.map(Function.identity());
-        }
+        abstract SetSignal<String> initParent(Context cx);
 
         @Override
         void add(SetSignal<String> set, String s) {
-            super.add(parent, s);
+            MappableSignalTest.this.add(parent, s);
         }
 
-        void shouldApplyMapping(){}
+        @Override
+        void remove(SetSignal<String> set, String s) {
+            MappableSignalTest.this.remove(parent,s);
+        }
+
+        @Override
+        SetSignal<String> init(Context cx) {
+            parent = initParent(cx);
+            return parent.map(Function.identity());
+        }
+
+        @Test void shouldApplyMapping(){
+            var base = MappableSignalTest.this.init(cx);
+            var mapped = base.map(str -> str+"-mapped");
+            base.add("a");
+            base.add("b");
+            base.add("c");
+            assertThat(mapped)
+                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
+            assertThat(mapped.untrackedIterator())
+                    .toIterable()
+                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
+            assertThat(mapped.iterator())
+                    .toIterable()
+                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
+            Consumer<String> consumer = mock();
+            cx.run(()->mapped.onAdd(consumer));
+            verify(consumer).accept("a-mapped");
+            verify(consumer).accept("b-mapped");
+            verify(consumer).accept("c-mapped");
+            assertThat(mapped.contains("b-mapped")).isTrue();
+            assertThat(mapped.getUntracked())
+                    .containsExactlyInAnyOrder("a-mapped","b-mapped","c-mapped");
+        }
+    }
+    @Nested
+    class Map extends MapTest {
+
+        @Override
+        SetSignal<String> initParent(Context cx) {
+            return MappableSignalTest.this.init(cx);
+        }
+
+        @DisplayName("map()")
+        @Nested class MapMap extends MapTest {
+            @Override
+            SetSignal<String> initParent(Context cx) {
+                return Map.this.init(cx);
+            }
+
+            @Override
+            void add(SetSignal<String> set, String s) {
+                Map.this.add(set, s);
+            }
+
+            @Override
+            void remove(SetSignal<String> set, String s) {
+                Map.this.remove(set, s);
+            }
+        }
+    }
+}
+@DisplayName("Context.createSetSignal()")
+@DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
+class CreateSignal extends MappableSignalTest {
+    @Override
+    SetSignal<String> init(Context cx) {
+        return cx.createSetSignal();
     }
 }
