@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K, V> {
     private final SetSignal<SignalEntry<K, V>> map;
@@ -30,7 +31,7 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
 
     @Override
     public SignalLike<V> getSignal(K key) {
-        return map.stream()
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(map.untrackedIterator(), Spliterator.ORDERED),false)
                 .filter(e -> e.getKey().equals(key))
                 .findFirst()
                 .map(SignalEntry::getValueSignal)
@@ -39,7 +40,7 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
 
     @Override
     public V remove(Object key) {
-        for (var iter = map.iterator();iter.hasNext();) {
+        for (var iter = map.untrackedIterator();iter.hasNext();) {
             var entry = iter.next();
             if(entry.getKey().equals(key)) {
                 System.out.println("SetMapSignal.remove: found "+entry);
@@ -52,15 +53,16 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
 
     @Override
     public boolean remove(Object key, Object value) {
-        for (var iter = map.iterator();iter.hasNext();) {
+        for (var iter = map.untrackedIterator();iter.hasNext();) {
             var entry = iter.next();
             if(entry.getKey().equals(key)) {
+                if(!entry.getValueSignal().getUntracked().equals(value)) return false;
                 System.out.println("SetMapSignal.remove: found "+entry);
                 iter.remove();
-                return entry.getValueSignal().getUntracked();
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     @Override
@@ -147,6 +149,11 @@ public class SetMapSignal<K, V> extends AbstractMap<K, V> implements MapSignal<K
     @Override
     public @NotNull Set<Entry<K, V>> entrySet() {
         return Collections.unmodifiableSet(map);
+    }
+
+    @Override
+    public void clear() {
+        map.clear();
     }
 
     @Override
