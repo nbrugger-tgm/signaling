@@ -94,8 +94,18 @@ public class SetStackContext implements Context {
     }
 
     @Override
+    public <T> SetSignal<T> createSetSignal() {
+        return new HashSetSignal<>(this);
+    }
+
+    @Override
     public <K, V> MapSignal<K, V> createSignal(Map<K, V> initial) {
         return new SetMapSignal<>(this, initial, getParentStackElement());
+    }
+
+    @Override
+    public <K, V> MapSignal<K, V> createMapSignal() {
+        return new SetMapSignal<>(this, getParentStackElement());
     }
 
     @Override
@@ -239,6 +249,7 @@ public class SetStackContext implements Context {
 
     @Override
     public void registerEffect(EffectHandle customEffect) {
+        if(nestedEffects.contains(customEffect)) return;
         if(recording != null) nestedEffects.add(customEffect);
         else throw new IllegalStateException("registerEffect is called outside of running effect");
     }

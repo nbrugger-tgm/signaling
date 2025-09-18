@@ -68,6 +68,12 @@ public interface Context {
     <T> ListSignal<T> createSignal(T[] initial);
 
     /**
+     * @return an empty list signal
+     * @param <T> the element type of the list {@link  ListSignal}
+     */
+    <T> ListSignal<T> createListSignal();
+
+    /**
      * Creates a new SetSignal with the given initial values.
      *
      * @param initial the initial values of the SetSignal
@@ -75,6 +81,12 @@ public interface Context {
      * @return a new SetSignal instance
      */
     <T> SetSignal<T> createSignal(Set<T> initial);
+
+    /**
+     * @return an empty set signal
+     * @param <T> the element type of the set {@link  SetSignal}
+     */
+    <T> SetSignal<T> createSetSignal();
 
     /**
      * Creates a new MapSignal with the given initial values.
@@ -85,6 +97,14 @@ public interface Context {
      * @return a new MapSignal instance
      */
     <K, V> MapSignal<K, V> createSignal(Map<K, V> initial);
+
+
+    /**
+     * @return an empty map signal
+     * @param <K>     the type of the keys
+     * @param <V>     the type of the values
+     */
+    <K,V> MapSignal<K,V> createMapSignal();
 
     /**
      * Creates a memoized value that is computed using the given function.
@@ -138,12 +158,6 @@ public interface Context {
      * @return a handle to cancel the whole reactive tree
      */
     EffectHandle run(Runnable effect);
-
-    /**
-     * @return an empty list signal
-     * @param <T> the element type of the list {@link  ListSignal}
-     */
-    <T> ListSignal<T> createListSignal();
 
     /**
      * Registers a hook for debugging purposes that is executed after an effect was executed. The effect handle passed to the hook is the updated effect

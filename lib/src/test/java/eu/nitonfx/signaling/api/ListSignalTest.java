@@ -1,4 +1,5 @@
-import eu.nitonfx.signaling.api.Context;
+package eu.nitonfx.signaling.api;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -6,10 +7,11 @@ import java.util.function.Consumer;
 
 import static org.mockito.Mockito.*;
 
-public class ListSignalTest {
+public abstract class ListSignalTest {
+    abstract Context createContext();
     @Test
     void onAddEffectsRunCleanup() {
-        var cx = Context.create();
+        var cx = createContext();
         Consumer<String> cleanup = mock();
         var outerEffect = cx.createEffect(() -> {
             var list = cx.createSignal(List.of("A", "B"));

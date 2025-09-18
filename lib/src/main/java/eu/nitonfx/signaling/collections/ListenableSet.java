@@ -34,8 +34,27 @@ public class ListenableSet<E> extends AbstractSet<E> {
     }
 
     @Override
-    public Iterator<E> iterator() {
-        return set.iterator();
+    public @NotNull Iterator<E> iterator() {
+        var innerIter = set.iterator();
+        return new Iterator<E>() {
+            E last;
+            @Override
+            public boolean hasNext() {
+                return innerIter.hasNext();
+            }
+
+            @Override
+            public E next() {
+                last = innerIter.next();
+                return last;
+            }
+
+            @Override
+            public void remove() {
+                innerIter.remove();
+                removeListener.accept(last);
+            }
+        };
     }
 
     @Override

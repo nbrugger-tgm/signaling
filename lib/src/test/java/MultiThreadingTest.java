@@ -1,15 +1,13 @@
 import eu.nitonfx.signaling.api.Context;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class MultiThreaded {
+public class MultiThreadingTest {
     @Test
     void asyncWrite() throws InterruptedException {
         var cx = Context.create();

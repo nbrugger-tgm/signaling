@@ -28,10 +28,12 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
 
     private void onRemove(E signal) {
         reconcilers.forEach(it -> it.onRemove(signal));
+        size.set(set.size());
     }
 
     private void onAdd(E signal) {
         reconcilers.forEach(it -> it.onAdd(signal));
+        size.set(set.size());
     }
 
     public HashSetSignal(Context cx, Set<E> initial) {
@@ -46,15 +48,11 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
     @Override
     public void clear() {
         set.clear();
-        size.set(0);
     }
 
     @Override
     public boolean remove(Object o) {
-        var removed = set.remove(o);
-        if (removed)
-            size.set(set.size());
-        return removed;
+        return set.remove(o);
     }
 
     @Override
@@ -68,7 +66,18 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
     @Override
     public Iterator<E> iterator() {
         size.get();//this is to make sure the size signal is subscribed to
-        return set.iterator();
+        var iter = set.iterator();
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return iter.hasNext();
+            }
+
+            @Override
+            public E next() {
+                return iter.next();
+            }
+        };
     }
 
     @Override
@@ -80,6 +89,11 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
     @Unmodifiable
     public Set<E> getUntracked() {
         return set;
+    }
+
+    @Override
+    public Iterator<E> untrackedIterator() {
+        return set.iterator();
     }
 
     @Override
@@ -131,6 +145,27 @@ public class HashSetSignal<E> extends AbstractSet<E> implements SetSignal<E> {
         @Override
         public Set<N> getUntracked() {
             return HashSetSignal.this.getUntracked().stream().map(mapper).collect(Collectors.toUnmodifiableSet());
+        }
+
+        @Override
+        public Iterator<N> untrackedIterator() {
+            var iter = HashSetSignal.this.untrackedIterator();
+            return new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    return iter.hasNext();
+                }
+
+                @Override
+                public N next() {
+                    return mapper.apply(iter.next());
+                }
+
+                @Override
+                public void remove() {
+                    iter.remove();
+                }
+            };
         }
 
         @Override
