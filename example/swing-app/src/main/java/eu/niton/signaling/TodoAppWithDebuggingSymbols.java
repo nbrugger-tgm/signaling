@@ -17,7 +17,7 @@ import static eu.nitonfx.signaling.processors.reactiveproxy.ProxyFactory.create;
 public class TodoAppWithDebuggingSymbols {
     private static final Context cx = Context.create();
     private static final ReactiveSwing jsx = new ReactiveSwing(cx);
-    private static Collection<? extends EffectHandle> effectHandles;
+    private static EffectHandle effectHandles;
     public static void main(String[] args) {
         cx.setPostEffectExecutionHook(effect -> {
             System.out.println("Execute:\n"+effect.formatAsTree());
@@ -50,7 +50,7 @@ public class TodoAppWithDebuggingSymbols {
         todos.onAdd((todo, index) -> {
             var todoItem = TodoItem(todo, () -> todos.remove(todo.getUntracked()));
             pane.add(todoItem).name("add todo item component");
-            effectHandles.forEach(it->System.out.println(it.formatAsTree()));
+            System.out.println(effectHandles.formatAsTree());
         }).name("on new todo item");
         return pane;
     }
