@@ -1,4 +1,5 @@
-import eu.nitonfx.signaling.api.Context;
+package eu.nitonfx.signaling.api;
+
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -10,11 +11,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.*;
 
-public class UseEffectTest {
+public abstract class UseEffectTest {
+    protected abstract Context createContext();
     @Test
     void shoudCallUseEffectOnChange() {
         Consumer<Integer> consumer = mock();
-        Context cx = Context.create();
+        Context cx = createContext();
         var count = cx.createSignal(0);
         count.set(5);
         cx.createEffect(() -> consumer.accept(count.get()));
@@ -26,7 +28,7 @@ public class UseEffectTest {
     @RepeatedTest(15)
     void useCase() {
         Consumer<Integer> consumer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var doubleCount = cx.createMemo(() -> count.get() * 2);
         cx.createEffect(() -> {
@@ -50,7 +52,7 @@ public class UseEffectTest {
     @RepeatedTest(15)
     void useCase2() {
         Consumer<Integer> consumer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()->{
             var count = cx.createSignal(0);
             var doubleCount = cx.createMemo(() -> count.get() * 2);
@@ -74,7 +76,7 @@ public class UseEffectTest {
     @Test
     void nestedEffectOnlyReactsToNonParentChanges() {
         Consumer<Integer> consumer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var count2 = cx.createSignal(0);
         cx.createEffect(() -> {
@@ -91,7 +93,7 @@ public class UseEffectTest {
     @Test
     void cascase() {
         Consumer<Integer> target = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var count2 = cx.createSignal(0);
         cx.createEffect(() -> count2.set(count.get()));
@@ -105,7 +107,7 @@ public class UseEffectTest {
     @Test
     void nestedCascade() {
         Consumer<Integer> target = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var count2 = cx.createSignal(0);
         cx.createEffect(() -> count2.set(count.get()));
@@ -123,7 +125,7 @@ public class UseEffectTest {
     void onlyRequiredEffectsAreRun() {
         Consumer<Integer> target = mock();
         Consumer<Integer> target2 = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var count2 = cx.createSignal(1);
 
@@ -148,7 +150,7 @@ public class UseEffectTest {
 
     @Test
     void conditionalReactivity() {
-        var cx = Context.create();
+        var cx = createContext();
         var loggedIn = cx.createSignal(false);
         var secretValue = cx.createSignal("s3cr3t");
 
@@ -180,7 +182,7 @@ public class UseEffectTest {
 
     @Test
     void conditionalNesting() {
-        var cx = Context.create();
+        var cx = createContext();
         var loggedIn = cx.createSignal(false);
         var secretValue = cx.createSignal("s3cr3t");
 
@@ -213,7 +215,7 @@ public class UseEffectTest {
 
     @Test
     void chainingWorks() {
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var count2 = cx.createSignal(0);
         var count3 = cx.createSignal(0);
@@ -235,7 +237,7 @@ public class UseEffectTest {
 
     @Test
     void recursiveEffect() {
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
 
         Consumer<Integer> target = mock(Consumer.class);
@@ -257,7 +259,7 @@ public class UseEffectTest {
 
     @Test
     void nestedEffectsAreCleaned() {
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         var count2 = cx.createSignal(0);
         Consumer<Integer> consumer = mock();
@@ -274,7 +276,7 @@ public class UseEffectTest {
 
     @RepeatedTest(10)
     void executionOrder(){
-        var cx = Context.create();
+        var cx = createContext();
         var rootCount = cx.createSignal(0);
         var count1 = cx.createSignal(0);
         var count2 = cx.createSignal(0);
@@ -321,7 +323,7 @@ public class UseEffectTest {
 
     @Test
     void cleanupRunsBeforeNewExecution(){
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         Consumer<Integer> cleanup = mock();
         Consumer<Integer> effect = mock();
@@ -341,7 +343,7 @@ public class UseEffectTest {
 
     @Test
     void cleanupRunsOnParentExecution(){
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         Consumer<Integer> cleanup = mock();
         Consumer<Integer> effect = mock();
@@ -360,7 +362,7 @@ public class UseEffectTest {
 
     @Test
     void innerSignalDoesntTriggerOuterEffect(){
-        var cx = Context.create();
+        var cx = createContext();
         cx.createEffect(() -> {
             var count = cx.createSignal(0);
             count.set(5);
@@ -373,7 +375,7 @@ public class UseEffectTest {
 
     @Test
     void manualEffectCancellation() {
-        var cx = Context.create();
+        var cx = createContext();
         var count = cx.createSignal(0);
         Consumer<Integer> effect = mock();
         var effectHandle = cx.createEffect(() -> effect.accept(count.get()));

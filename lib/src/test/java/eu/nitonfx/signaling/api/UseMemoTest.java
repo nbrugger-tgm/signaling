@@ -1,4 +1,5 @@
-import eu.nitonfx.signaling.api.Context;
+package eu.nitonfx.signaling.api;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
@@ -6,11 +7,12 @@ import java.util.function.Supplier;
 
 import static org.mockito.Mockito.*;
 
-public class UseMemoTest {
+public abstract class UseMemoTest {
+    abstract Context createContext();
     @Test
     void memoNotEagerlyCalculated(){
         Supplier<String> producer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()-> cx.createMemo(producer));
         verify(producer,never()).get();
     }
@@ -18,7 +20,7 @@ public class UseMemoTest {
     @Test
     void memoCalculatedOnGet(){
         Supplier<String> producer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()-> {
             cx.createMemo(producer);
             producer.get();
@@ -29,7 +31,7 @@ public class UseMemoTest {
     @Test
     void memoCalculatedOnEffectFetch(){
         Supplier<String> producer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()-> cx.createEffect(producer::get));
         verify(producer,times(1)).get();
     }
@@ -37,7 +39,7 @@ public class UseMemoTest {
     @Test
     void memoOnlyCalculatedOnce(){
         Supplier<String> producer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()-> {
             var memo = cx.createMemo(producer::get);
             cx.createEffect(()-> {
@@ -51,7 +53,7 @@ public class UseMemoTest {
     @Test
     void memoNotRecalculatedOnValueChangeBeforeGetting(){
         var onCalculate = mock(Runnable.class);
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()->{
             var signal = cx.createSignal(0);
             var memo = cx.createMemo(()-> {
@@ -72,7 +74,7 @@ public class UseMemoTest {
     @Test
     void memoNotRecalculatedOnValueChangeAfterGetting(){
         var onCalculate = mock(Runnable.class);
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()->{
             var signal = cx.createSignal(0);
             var memo = cx.createMemo(()-> {
@@ -91,7 +93,7 @@ public class UseMemoTest {
     @Test
     void memoRecalculatedOnValueChangeWhenRequested(){
         var onCalculate = mock(Runnable.class);
-        var cx = Context.create();
+        var cx = createContext();
         cx.run(()->{
             var signal = cx.createSignal(0);
             var memo = cx.createMemo(()-> {
@@ -111,7 +113,7 @@ public class UseMemoTest {
     @Test
     void nonChangingUpdatesDoNotPush(){
         Consumer<String> consumer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var signal = cx.createSignal(0);
         var isOdd = cx.createMemo(()->signal.get() %2 == 1);
         var oddString = cx.createMemo(()->isOdd.get() ? "odd" : "even");
@@ -125,7 +127,7 @@ public class UseMemoTest {
     @Test
     void nonChangingUpdatesDoNotRecalculate(){
         Runnable stringifyCalc = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var signal = cx.createSignal(1);
         var isOdd = cx.createMemo(()->signal.get() %2 == 1);
         var oddString = cx.createMemo(()-> {
@@ -144,7 +146,7 @@ public class UseMemoTest {
     @Test
     void changingUpdatesPushUpdate(){
         Consumer<String> consumer = mock();
-        var cx = Context.create();
+        var cx = createContext();
         var signal = cx.createSignal(0);
         var isOdd = cx.createMemo(()->signal.get() %2 == 1);
         var oddString = cx.createMemo(()->isOdd.get() ? "odd" : "even");

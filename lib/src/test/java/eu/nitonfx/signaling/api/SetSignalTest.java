@@ -1,15 +1,11 @@
 package eu.nitonfx.signaling.api;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -20,7 +16,86 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-abstract class SetSignalTest {
+public abstract class SetSignalTest extends SetSignalSpec {
+    abstract class MapTest extends SetSignalSpec {
+
+        private SetSignal<String> parent;
+
+        abstract SetSignal<String> initParent(Context cx);
+
+        @Override
+        void add(SetSignal<String> set, String s) {
+            SetSignalTest.this.add(parent, s);
+        }
+
+        @Override
+        void remove(SetSignal<String> set, String s) {
+            SetSignalTest.this.remove(parent, s);
+        }
+
+        @Override
+        Context createContext() {
+            return SetSignalTest.this.createContext();
+        }
+
+        @Override
+        SetSignal<String> init(Context cx) {
+            parent = initParent(cx);
+            return parent.map(Function.identity());
+        }
+
+        @Test void shouldApplyMapping(){
+            var base = SetSignalTest.this.init(cx);
+            var mapped = base.map(str -> str+"-mapped");
+            base.add("a");
+            base.add("b");
+            base.add("c");
+            assertThat(mapped)
+                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
+            assertThat(mapped.untrackedIterator())
+                    .toIterable()
+                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
+            assertThat(mapped.iterator())
+                    .toIterable()
+                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
+            Consumer<String> consumer = mock();
+            cx.run(()->mapped.onAdd(consumer));
+            verify(consumer).accept("a-mapped");
+            verify(consumer).accept("b-mapped");
+            verify(consumer).accept("c-mapped");
+            assertThat(mapped.contains("b-mapped")).isTrue();
+            assertThat(mapped.getUntracked())
+                    .containsExactlyInAnyOrder("a-mapped","b-mapped","c-mapped");
+        }
+    }
+    @Nested
+    class Map extends MapTest {
+
+        @Override
+        SetSignal<String> initParent(Context cx) {
+            return SetSignalTest.this.init(cx);
+        }
+
+        @DisplayName("map()")
+        @Nested class MapMap extends MapTest {
+            @Override
+            SetSignal<String> initParent(Context cx) {
+                return Map.this.init(cx);
+            }
+
+            @Override
+            void add(SetSignal<String> set, String s) {
+                Map.this.add(set, s);
+            }
+
+            @Override
+            void remove(SetSignal<String> set, String s) {
+                Map.this.remove(set, s);
+            }
+        }
+    }
+}
+abstract class SetSignalSpec {
     abstract SetSignal<String> init(Context cx);
     void add(SetSignal<String> set,String s) {
         set.add(s);
@@ -32,8 +107,10 @@ abstract class SetSignalTest {
 
     @BeforeEach
     void setContext(){
-        cx = Context.create();
+        cx = createContext();
     }
+
+    abstract Context createContext();
 
     @Nested
     class Size {
@@ -241,9 +318,9 @@ abstract class SetSignalTest {
             var set = init(cx);
             var runnable = mock(Runnable.class);
             cx.run(()->{
-               set.onAdd((e)->{
-                   runnable.run();
-               });
+                set.onAdd((e)->{
+                    runnable.run();
+                });
             });
             add(set,"b");
             verify(runnable,times(1)).run();
@@ -331,87 +408,5 @@ abstract class SetSignalTest {
             add(set,"b");
             verify(effect, times(1)).accept("b");
         }
-    }
-}
-abstract class MappableSignalTest extends SetSignalTest {
-    abstract class MapTest extends SetSignalTest {
-
-        private SetSignal<String> parent;
-
-        abstract SetSignal<String> initParent(Context cx);
-
-        @Override
-        void add(SetSignal<String> set, String s) {
-            MappableSignalTest.this.add(parent, s);
-        }
-
-        @Override
-        void remove(SetSignal<String> set, String s) {
-            MappableSignalTest.this.remove(parent,s);
-        }
-
-        @Override
-        SetSignal<String> init(Context cx) {
-            parent = initParent(cx);
-            return parent.map(Function.identity());
-        }
-
-        @Test void shouldApplyMapping(){
-            var base = MappableSignalTest.this.init(cx);
-            var mapped = base.map(str -> str+"-mapped");
-            base.add("a");
-            base.add("b");
-            base.add("c");
-            assertThat(mapped)
-                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
-            assertThat(mapped.untrackedIterator())
-                    .toIterable()
-                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
-            assertThat(mapped.iterator())
-                    .toIterable()
-                    .containsExactlyInAnyOrder("a-mapped", "b-mapped", "c-mapped");
-            Consumer<String> consumer = mock();
-            cx.run(()->mapped.onAdd(consumer));
-            verify(consumer).accept("a-mapped");
-            verify(consumer).accept("b-mapped");
-            verify(consumer).accept("c-mapped");
-            assertThat(mapped.contains("b-mapped")).isTrue();
-            assertThat(mapped.getUntracked())
-                    .containsExactlyInAnyOrder("a-mapped","b-mapped","c-mapped");
-        }
-    }
-    @Nested
-    class Map extends MapTest {
-
-        @Override
-        SetSignal<String> initParent(Context cx) {
-            return MappableSignalTest.this.init(cx);
-        }
-
-        @DisplayName("map()")
-        @Nested class MapMap extends MapTest {
-            @Override
-            SetSignal<String> initParent(Context cx) {
-                return Map.this.init(cx);
-            }
-
-            @Override
-            void add(SetSignal<String> set, String s) {
-                Map.this.add(set, s);
-            }
-
-            @Override
-            void remove(SetSignal<String> set, String s) {
-                Map.this.remove(set, s);
-            }
-        }
-    }
-}
-@DisplayName("Context.createSetSignal()")
-@DisplayNameGeneration(DisplayNameGenerator.IndicativeSentences.class)
-class CreateSignal extends MappableSignalTest {
-    @Override
-    SetSignal<String> init(Context cx) {
-        return cx.createSetSignal();
     }
 }
