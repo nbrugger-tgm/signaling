@@ -22,29 +22,58 @@ loggedIn.set(true);//"Hi! The secret is : other" is logged
 secretValue.set("s3cr3t");//"Hi! The secret is : s3cr3t" is logged
 ```
 
-Also support for nested effects (caused a lot of headache!) was important.
-Example:
-```java
-cx.createEffect(() -> {
-    if (loggedIn.get() && expensiveApiCall()) {
-        cx.createEffect(()->println("The secret is : "+secretValue.get()));
-    }else{
-        println("You shall not see the secret!");
-    }
-});
-```
-This causes that the `expensiveApiCall`  login check is only executed when `loggedIn` changes and not when `secretValue`
-changes since it only triggers the inner event!
-
-All the examples above are runnable! See `UseEffectTest.java`! The behaviour is nearly exactly the same as SolidJS (a few performance improvements are missing)
+The idea was to mimic SolidJS behavior as well as possible so most things behave like in Solid.
 
 # Features
-I have close to 100% codecoverage but not casecoverage so don't take everything for granted
-- Defered execution of nested effects for performance
-- Nested effects actualy work - amazing i know
-- No unsubscribing needed! As soon as a signal goes out of scope all related effects are removed!
-- Noop effects are cleaned automatically - no waste.
-- Thread-safe (but blocking!)
+
+While this is inspired by SolidJS a lot of what solidJS offers makes no sense in a JVM world. 
+But at the other hand there are also things that the Java world needs that JS does not so here are the features that are added on-top of the replication.
+
+### Proxy generation for complex signals
+
+In case you have a bean such as this ([read more](processor/reactive-proxy.md))
+```java
+class TodoItem {
+    boolean done;
+    String text;
+}
+```
+you cannot granularly update each field for fine-grained reactivity. By using `@Reactive` you can create a reactive complex signals
+```java
+@Reactive
+interface TodoItem {
+    boolean done();
+    String text();
+    void setText(String text);
+    void setDone(boolean done);
+}
+```
+which will create an implementation where each field is backed by a signal
+```java
+TodoItem item = ProxyFactory.create(cx, new TodoItem$Init("My task", false));
+cx.createEffect(()->System.out.println("Task completion changed: "+item.done()));
+cx.createEffect(()->System.out.println("Task text changed: "+item.text()));
+item.setText("xyz"); //sout: Task text changed: xyz
+item.setDone(true);//sout: Task completion changed: true
+```
+Should you happen to dislike codegeneration (compile-time not runtime!) your best alternative is this
+
+```java
+record TodoItem(
+        Signal<Boolean> done, 
+        Signal<String> text
+) {
+}
+
+TodoItem item = new TodoItem(
+        cx.createSignal(false),
+        cx.createSignal("MyTask")
+);
+cx.createEffect(()->System.out.println("Task completion changed: "+item.done.get()));
+cx.createEffect(()->System.out.println("Task text changed: "+item.text.get()));
+item.done.set(false);
+item.text.set(true);
+```
 
 # Licence
-Do whatever the f you want with it
+Free for any kind of use
