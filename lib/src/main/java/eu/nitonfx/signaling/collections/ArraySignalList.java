@@ -1,5 +1,6 @@
 package eu.nitonfx.signaling.collections;
 
+import eu.nitonfx.signaling.SetStackContext;
 import eu.nitonfx.signaling.api.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -78,9 +79,9 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     }
 
     @Override
-    public Supplier<T> getSignal(Supplier<@NotNull Integer> index) {
+    public SignalLike<T> getSignal(Supplier<@NotNull Integer> index) {
         var signal = cx.createMemo(()->getSignal(index.get()));
-        return ()-> signal.get().get();
+        return signal.map(SignalLike::get);
     }
 
     @Override
@@ -148,70 +149,55 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
     @Override
     @Unmodifiable
     public <N> ListSignal<N> map(Function<T, N> mapper) {
-        return new MappedView<>(mapper, this);
+        return new MappedView<>(mapper);
+    }
+
+    @Override
+    public @Unmodifiable <N> ListSignal<N> mapSignals(Function<SignalLike<T>, N> mapper) {
+        return new MappedSignalView<>(mapper, this);
     }
 
     @Unmodifiable
-    private static class MappedView<O,N> extends AbstractList<N> implements ListSignal<N>{
-        private final Function<O,N> mapper;
-        private final ListSignal<O> unmapped;
+    private static class MappedSignalView<O,N> extends AbstractList<N> implements ListSignal<N>{
+        private final Function<SignalLike<O>,N> mapper;
         private String name;
-        private MappedView(Function<O, N> mapper, ListSignal<O> unmapped) {
+        private final ListSignal<O> unmapped;
+        private Context cx;
+
+        private MappedSignalView(Function<SignalLike<O>, N> mapper,  ListSignal<O> unmapped) {
             this.mapper = mapper;
             this.unmapped = unmapped;
         }
 
-        private class MappedSignal implements SignalLike<N>{
-            private final SignalLike<O> source;
-
-            private MappedSignal(SignalLike<O> source) {
-                this.source = source;
-            }
-
-            @Override
-            public N get() {
-                return mapper.apply(source.get());
-            }
-
-            @Override
-            public N getUntracked() {
-                return mapper.apply(source.getUntracked());
-            }
-
-            @Override
-            public Subscription onDirtyEffect(Consumer<SignalLike<N>> consumer) {
-                return source.onDirtyEffect(signal -> consumer.accept(this));
-            }
-
-            @Override
-            public Subscription propagateDirty(Consumer<SignalLike<N>> consumer) {
-                return source.propagateDirty(signal -> consumer.accept(this));
-            }
-        }
-
         @Override
         public SignalLike<N> getSignal(int index) {
-            return new MappedSignal(unmapped.getSignal(index));
+            return cx.createMemo(()->mapper.apply(unmapped.getSignal(index)));
         }
 
         @Override
-        public Supplier<N> getSignal(Supplier<@NotNull Integer> index) {
-            return ()->mapper.apply(unmapped.getSignal(index).get());
+        public SignalLike<N> getSignal(Supplier<@NotNull Integer> index) {
+            var signal = cx.createMemo(()->unmapped.getSignal(index.get()));
+            return signal.map(mapper);
         }
 
         @Override
         public List<N> getUntracked() {
-            return unmapped.getUntracked().stream().map(mapper).collect(Collectors.toList());
+            throw new UnsupportedOperationException("At this point reading a mapSignals() list untracked is not possible, consuder using Context#untracked()");
         }
 
         @Override
         public EffectHandle onAdd(BiConsumer<SignalLike<N>, Integer> consumer) {
-            return unmapped.onAdd((elem, index) -> consumer.accept(new MappedSignal(elem), index));
+            return unmapped.onAdd((elem, index) -> consumer.accept(cx.createMemo(()->mapper.apply(elem)), index));
         }
 
         @Override
         public <M> ListSignal<M> map(Function<N, M> mapper) {
-            return new MappedView<>(this.mapper.andThen(mapper), unmapped);
+            return new MappedSignalView<>(this.mapper.andThen(mapper), unmapped);
+        }
+
+        @Override
+        public @Unmodifiable <M> ListSignal<M> mapSignals(Function<SignalLike<N>, M> mapper) {
+            return new MappedSignalView<>(mapper, this);
         }
 
         @Override
@@ -221,12 +207,66 @@ public class ArraySignalList<T> extends AbstractList<T> implements ListSignal<T>
 
         @Override
         public N get(int index) {
-            return mapper.apply(unmapped.get(index));
+            return mapper.apply(unmapped.getSignal(index));
         }
 
         @Override
         public int size() {
             return unmapped.size();
+        }
+    }
+
+    @Unmodifiable
+    private class MappedView<N> extends AbstractList<N> implements ListSignal<N>{
+        private final Function<T,N> mapper;
+        private String name;
+        private MappedView(Function<T, N> mapper) {
+            this.mapper = mapper;
+        }
+
+        @Override
+        public SignalLike<N> getSignal(int index) {
+            return ArraySignalList.this.getSignal(index).map(mapper);
+        }
+
+        @Override
+        public SignalLike<N> getSignal(Supplier<@NotNull Integer> index) {
+            return ArraySignalList.this.getSignal(index).map(mapper);
+        }
+
+        @Override
+        public List<N> getUntracked() {
+            return ArraySignalList.this.getUntracked().stream().map(mapper).collect(Collectors.toList());
+        }
+
+        @Override
+        public EffectHandle onAdd(BiConsumer<SignalLike<N>, Integer> consumer) {
+            return ArraySignalList.this.onAdd((elem, index) -> consumer.accept(elem.map(mapper), index));
+        }
+
+        @Override
+        public <M> ListSignal<M> map(Function<N, M> mapper) {
+            return new MappedView<>(this.mapper.andThen(mapper));
+        }
+
+        @Override
+        public @Unmodifiable <M> ListSignal<M> mapSignals(Function<SignalLike<N>, M> mapper) {
+            return new MappedSignalView<>(mapper, this);
+        }
+
+        @Override
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public N get(int index) {
+            return mapper.apply(ArraySignalList.this.get(index));
+        }
+
+        @Override
+        public int size() {
+            return ArraySignalList.this.size();
         }
     }
 }

@@ -26,7 +26,7 @@ public interface ListSignal<T> extends List<T> {
      */
     SignalLike<T> getSignal(int index);
 
-    Supplier<T> getSignal(Supplier<@NotNull Integer> index);
+    SignalLike<T> getSignal(Supplier<@NotNull Integer> index);
 
     /**
      * @return the list of elements without tracking
@@ -42,6 +42,15 @@ public interface ListSignal<T> extends List<T> {
      */
     @Unmodifiable
     <N> ListSignal<N> map(Function<T,N> mapper);
+
+    /**
+     * Creates a mapped read-only projection/view of this list - if the underlying list changes the projection reflects this changes.
+     * The difference to {@link #map(Function)} is that you can savely create subscriptions within the mapping function
+     * @return a view of this list mapped to a different type
+     * @param <N> element type of the new list
+     */
+    @Unmodifiable
+    <N> ListSignal<N> mapSignals(Function<SignalLike<T>,N> mapper);
 
     /**
      * <p>
