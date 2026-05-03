@@ -62,7 +62,7 @@ public interface SignalLike<T> extends Supplier<T> {
 
             @Override
             public I getUntracked() {
-                return mapper.apply(SignalLike.this.get());
+                return mapper.apply(SignalLike.this.getUntracked());
             }
 
             @Override
