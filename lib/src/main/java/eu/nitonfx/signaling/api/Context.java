@@ -2,6 +2,7 @@ package eu.nitonfx.signaling.api;
 
 import eu.nitonfx.signaling.SetStackContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +48,7 @@ public interface Context {
      * @param <T> the type of the value
      * @return a new Signal instance with a null initial value
      */
-    <T> Signal<T> createNullSignal();
+    <T> Signal<@Nullable T> createNullSignal();
 
     /**
      * Creates a new ListSignal with the given initial values.
