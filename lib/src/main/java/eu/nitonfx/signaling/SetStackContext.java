@@ -13,12 +13,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class SetStackContext implements Context {
+    private record RunningEffect(Thread thread, Runnable effect){}
     private final Set<Dependency<?>> dependencies = new HashSet<>();
     private final List<EffectHandle> nestedEffects = new ArrayList<>(3);
     private final List<Supplier<Set<Runnable>>> deferredEffects = new ArrayList<>(8);
     private final Set<Runnable> cleanup = new HashSet<>();
     @Nullable
-    private Runnable recording = null;
+    private RunningEffect recording = null;
     private boolean debugEffects;
     @Nullable
     private Consumer<EffectHandle> postEffectHook = null;
@@ -59,10 +60,10 @@ public class SetStackContext implements Context {
     /**
      * @param creationEffect the effect that the signal was created in
      */
-    private <T> void onSignalRead(SignalLike<T> subscribable, Runnable creationEffect) {
-        if (recording == null)
-            return;
-        if(recording == creationEffect) {
+    private <T> void onSignalRead(SignalLike<T> subscribable, RunningEffect creationEffect) {
+        if (recording == null || recording.thread != Thread.currentThread()) return;
+
+        if(creationEffect != null && recording.effect == creationEffect.effect) {
             throw new UnsupportedOperationException("Reading a signal in the effect it was created in is a bug");
         }
         //remove outdated signal dependencies
@@ -127,21 +128,9 @@ public class SetStackContext implements Context {
         var disabledDeferredSignalUpdates = new ArrayList<>(deferredEffects);
         var disabledClanups = new HashSet<>(cleanup);
 
-        dependencies.clear();
-        nestedEffects.clear();
-        deferredEffects.clear();
-        cleanup.clear();
+        var isolatedRecording = runAndCapture(runnable);
 
-        recording = runnable;
-        runnable.run();
         recording = disabledRecording;
-        var isolatedRecording = new EffectCapture(
-                Set.copyOf(dependencies),
-                List.copyOf(nestedEffects),
-                List.copyOf(deferredEffects),
-                Set.copyOf(cleanup)
-        );
-
         dependencies.clear();
         nestedEffects.clear();
         deferredEffects.clear();
@@ -192,8 +181,10 @@ public class SetStackContext implements Context {
     }
 
     private void runEffect(Effect effectWrapper) {
-        if (recording != null) nestedEffects.add(effectWrapper);
-        else effectWrapper.run();
+        if (recording != null) {
+            if(recording.thread == Thread.currentThread()) nestedEffects.add(effectWrapper);
+            else deferredEffects.add(()->Set.of(effectWrapper));
+        } else effectWrapper.run();
     }
 
     @Override
@@ -216,14 +207,14 @@ public class SetStackContext implements Context {
         nestedEffects.clear();
         deferredEffects.clear();
         cleanup.clear();
-        recording = effect;
+        recording = new RunningEffect(Thread.currentThread(),effect);
         effect.run();
         recording = null;
         return new EffectCapture(Set.copyOf(dependencies), List.copyOf(nestedEffects), List.copyOf(deferredEffects), Set.copyOf(cleanup));
     }
 
     @Override
-    public EffectHandle  run(Runnable effect) {
+    public EffectHandle run(Runnable effect) {
         var capture = runAndCapture(effect);
         capture.nestedEffects().forEach(eh -> {
             if(eh instanceof Effect e) e.run();
@@ -250,7 +241,7 @@ public class SetStackContext implements Context {
     @Override
     public void registerEffect(EffectHandle customEffect) {
         if(nestedEffects.contains(customEffect)) return;
-        if(recording != null) nestedEffects.add(customEffect);
+        if(recording != null && recording.thread() == Thread.currentThread()) nestedEffects.add(customEffect);
         else throw new IllegalStateException("registerEffect is called outside of running effect");
     }
 }
