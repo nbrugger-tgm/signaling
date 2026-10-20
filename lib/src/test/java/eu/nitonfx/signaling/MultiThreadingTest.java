@@ -1,3 +1,5 @@
+package eu.nitonfx.signaling;
+
 import eu.nitonfx.signaling.api.Context;
 import org.junit.jupiter.api.Test;
 

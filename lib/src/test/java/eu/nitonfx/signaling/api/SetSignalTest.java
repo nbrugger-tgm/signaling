@@ -1,7 +1,9 @@
 package eu.nitonfx.signaling.api;
 
+import eu.nitonfx.signaling.SentenceDisplayNameGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -95,6 +97,9 @@ public abstract class SetSignalTest extends SetSignalSpec {
         }
     }
 }
+
+
+@DisplayNameGeneration(SentenceDisplayNameGenerator.class)
 abstract class SetSignalSpec {
     abstract SetSignal<String> init(Context cx);
     void add(SetSignal<String> set,String s) {
@@ -114,7 +119,7 @@ abstract class SetSignalSpec {
 
     @Nested
     class Size {
-        @Test void isTracked(){
+        @Test void shouldBeTracked(){
             var set = init(cx);
             add(set, "a");
             add(set, "b");
@@ -173,7 +178,7 @@ abstract class SetSignalSpec {
             add(set,"b");
             verify(effect,times(1)).run();
         }
-        @Test void shouldNotTrackContainReads(){
+        @Test void shouldNotTrackContainsReads(){
             var set = init(cx);
             add(set,"a");
 

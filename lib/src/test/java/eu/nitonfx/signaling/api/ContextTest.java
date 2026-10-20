@@ -1,15 +1,16 @@
 package eu.nitonfx.signaling.api;
 
+import eu.nitonfx.signaling.SentenceDisplayNameGenerator;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Nested;
 
-@DisplayName("Context")
+@DisplayNameGeneration(SentenceDisplayNameGenerator.class)
 public abstract class ContextTest {
 
     protected abstract Context init();
 
     @Nested
-    @DisplayName("createSetSignal()")
     class CreateSetSignal extends SetSignalTest {
 
         @Override
@@ -24,7 +25,6 @@ public abstract class ContextTest {
     }
 
     @Nested
-    @DisplayName("createEffect()")
     class CreateEffect extends UseEffectTest {
         @Override
         protected Context createContext() {
@@ -33,7 +33,6 @@ public abstract class ContextTest {
     }
 
     @Nested
-    @DisplayName("createMemo()")
     class CreateMemo extends UseMemoTest {
 
         @Override
@@ -43,7 +42,6 @@ public abstract class ContextTest {
     }
 
     @Nested
-    @DisplayName("createListSignal()")
     class CreateListSignal extends ListSignalTest {
 
         @Override
@@ -53,12 +51,11 @@ public abstract class ContextTest {
     }
 }
 @DisplayName("Context")
+@DisplayNameGeneration(SentenceDisplayNameGenerator.class)
 class ContextStaticTest {
 
     @Nested
-    @DisplayName("create()")
     class Create extends ContextTest {
-
         @Override
         protected Context init() {
             return Context.create();
@@ -68,7 +65,6 @@ class ContextStaticTest {
     @Nested
     @DisplayName("global")
     class Global extends ContextTest {
-
         @Override
         protected Context init() {
             return Context.global;
